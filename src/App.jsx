@@ -1,50 +1,106 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CustomerPage from './pages/CustomerPage';
 import AdminPage from './pages/AdminPage';
 import AdminDashboard from './pages/AdminDashboard';
 import ProductManager from './pages/ProductManager';
 import SalesHistory from './pages/SalesHistory';
 import { initialMenuItems } from './data/menu';
+import { googleSheetsApi } from './utils/googleSheets';
 
 function App() {
   const [adminView, setAdminView] = useState('dashboard'); // dashboard | orders | products | sales
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState(initialMenuItems);
+  const [isLoading, setIsLoading] = useState(true);
 
   // ตรวจสอบ URL path เพื่อกำหนดว่าเป็นหน้าแอดมินหรือลูกค้า
   const isAdminPage = window.location.pathname.startsWith('/admin');
 
-  const handleAddOrder = (order) => {
+  // ดึงข้อมูลเริ่มต้น
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const [fetchedProducts, fetchedOrders] = await Promise.all([
+          googleSheetsApi.getProducts(),
+          googleSheetsApi.getOrders()
+        ]);
+        if (fetchedProducts && Array.isArray(fetchedProducts)) setProducts(fetchedProducts);
+        if (fetchedOrders && Array.isArray(fetchedOrders)) setOrders(fetchedOrders);
+      } catch (error) {
+        console.error('Error fetching data from Google Sheets:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const handleAddOrder = async (order) => {
     setOrders(prev => [order, ...prev]);
+    try {
+      await googleSheetsApi.addOrder(order);
+    } catch (error) {
+      console.error('Failed to sync order to Google Sheets:', error);
+    }
   };
 
-  const handleUpdateStatus = (orderId, newStatus) => {
+  const handleUpdateStatus = async (orderId, newStatus) => {
     setOrders(prev =>
       prev.map(order =>
         order.id === orderId ? { ...order, status: newStatus } : order
       )
     );
+    try {
+      await googleSheetsApi.updateOrderStatus(orderId, newStatus);
+    } catch (error) {
+      console.error('Failed to update status to Google Sheets:', error);
+    }
   };
 
   // จัดการสินค้า
-  const handleAddProduct = (product) => {
+  const handleAddProduct = async (product) => {
     setProducts(prev => [...prev, product]);
+    try {
+      await googleSheetsApi.addProduct(product);
+    } catch (error) {
+      console.error('Failed to add product to Google Sheets:', error);
+    }
   };
 
-  const handleEditProduct = (updatedProduct) => {
+  const handleEditProduct = async (updatedProduct) => {
     setProducts(prev =>
       prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
     );
+    try {
+      await googleSheetsApi.updateProduct(updatedProduct);
+    } catch (error) {
+      console.error('Failed to update product to Google Sheets:', error);
+    }
   };
 
-  const handleDeleteProduct = (productId) => {
+  const handleDeleteProduct = async (productId) => {
     setProducts(prev => prev.filter(p => p.id !== productId));
+    try {
+      await googleSheetsApi.deleteProduct(productId);
+    } catch (error) {
+      console.error('Failed to delete product from Google Sheets:', error);
+    }
   };
 
   // นำทางแอดมิน
   const navigateAdmin = (view) => {
     setAdminView(view);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-primary-50 flex flex-col items-center justify-center p-4">
+        <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-primary-600 font-medium">กำลังโหลดข้อมูล...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-primary-50">

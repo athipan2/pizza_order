@@ -12,11 +12,22 @@ function CheckoutForm({ cartItems, total, onSubmit, onCancel }) {
   });
   const [slipFile, setSlipFile] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    let slipData = null;
+    if (slipFile) {
+      // แปลงไฟล์สลิปเป็น Base64 เพื่อส่งไปยัง Apps Script
+      slipData = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(slipFile);
+      });
+    }
+
     onSubmit({
       ...formData,
-      slipFile,
+      slipFile: slipData,
       cartItems,
       total
     });

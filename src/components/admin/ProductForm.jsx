@@ -47,11 +47,14 @@ function ProductForm({ product, onSave, onCancel }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({
+    const productData = {
       ...formData,
       id: product?.id || Date.now(),
-      price: parseInt(formData.price, 10)
-    });
+      price: parseInt(formData.price, 10),
+      // ส่งรูปภาพเป็น Base64 หรือ URL ไปยัง Apps Script
+      image: previewImage || formData.image
+    };
+    onSave(productData);
   };
 
   return (
