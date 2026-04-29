@@ -25,8 +25,13 @@ function App() {
           googleSheetsApi.getProducts(),
           googleSheetsApi.getOrders()
         ]);
-        if (fetchedProducts && Array.isArray(fetchedProducts)) setProducts(fetchedProducts);
-        if (fetchedOrders && Array.isArray(fetchedOrders)) setOrders(fetchedOrders);
+
+        // ตรวจสอบโครงสร้างข้อมูลที่ได้รับ
+        const productsData = Array.isArray(fetchedProducts) ? fetchedProducts : (fetchedProducts?.data || []);
+        const ordersData = Array.isArray(fetchedOrders) ? fetchedOrders : (fetchedOrders?.data || []);
+
+        if (productsData.length > 0) setProducts(productsData);
+        if (ordersData.length > 0) setOrders(ordersData);
       } catch (error) {
         console.error('Error fetching data from Google Sheets:', error);
       } finally {
