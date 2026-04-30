@@ -4,6 +4,9 @@
 
 @layer base {
   html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  html {
     font-family: 'Sarabun', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 }

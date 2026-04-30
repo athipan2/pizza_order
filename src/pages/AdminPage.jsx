@@ -99,16 +99,25 @@ function AdminPage({ orders, onUpdateStatus, onBack }) {
                     🍽️ รายการสินค้า
                   </h4>
                   <div className="space-y-2">
-                    {order.cartItems.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">{item.image}</span>
-                          <span>{item.name}</span>
-                          <span className="text-gray-500">x{item.quantity}</span>
+                    {order.cartItems.map((item) => {
+                      const isEmoji = item.image && item.image.length <= 4;
+                      return (
+                        <div key={item.id} className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-gray-100 rounded flex items-center justify-center overflow-hidden">
+                              {isEmoji ? (
+                                <span className="text-lg">{item.image}</span>
+                              ) : (
+                                <img src={item.image} alt="" className="w-full h-full object-cover" />
+                              )}
+                            </div>
+                            <span>{item.name}</span>
+                            <span className="text-gray-500">x{item.quantity}</span>
+                          </div>
+                          <span className="font-medium">฿{item.price * item.quantity}</span>
                         </div>
-                        <span className="font-medium">฿{item.price * item.quantity}</span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 

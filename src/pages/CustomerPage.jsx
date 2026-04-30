@@ -54,14 +54,18 @@ function CustomerPage({ onAddOrder, products, orders }) {
 
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const handleCheckout = (orderData) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleCheckout = async (orderData) => {
+    setIsSubmitting(true);
     const order = {
       id: Date.now(),
       ...orderData,
       status: OrderStatus.PENDING_PAYMENT,
       createdAt: new Date().toLocaleString('th-TH')
     };
-    onAddOrder(order);
+    await onAddOrder(order);
+    setIsSubmitting(false);
     setCart([]);
     setShowCheckout(false);
     setShowSuccess(true);
@@ -159,12 +163,20 @@ function CustomerPage({ onAddOrder, products, orders }) {
 
             {/* แสดงตะกร้า หรือ checkout หรือเมนู */}
             {showCheckout ? (
-              <CheckoutForm
-                cartItems={cart}
-                total={cartTotal}
-                onSubmit={handleCheckout}
-                onCancel={() => setShowCheckout(false)}
-              />
+              <div className="relative">
+                {isSubmitting && (
+                  <div className="absolute inset-0 bg-white/50 z-20 flex flex-col items-center justify-center rounded-2xl">
+                    <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                    <p className="text-primary-600 font-medium">กำลังส่งคำสั่งซื้อ...</p>
+                  </div>
+                )}
+                <CheckoutForm
+                  cartItems={cart}
+                  total={cartTotal}
+                  onSubmit={handleCheckout}
+                  onCancel={() => !isSubmitting && setShowCheckout(false)}
+                />
+              </div>
             ) : showCart ? (
               <div className="space-y-4">
                 <button

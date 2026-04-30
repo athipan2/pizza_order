@@ -6,11 +6,12 @@ import {
   ChevronRight,
   TrendingUp,
   Clock,
-  BarChart3
+  BarChart3,
+  RefreshCw
 } from 'lucide-react';
 import { OrderStatus } from '../types';
 
-function AdminDashboard({ orders, products, onNavigate }) {
+function AdminDashboard({ orders, products, onNavigate, onRefresh, isRefreshing }) {
   // คำนวณสถิติ
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
   const totalOrders = orders.length;
@@ -93,12 +94,22 @@ function AdminDashboard({ orders, products, onNavigate }) {
             <h1 className="text-xl font-bold">🧑‍💼 แดชบอร์ดแอดมิน</h1>
             <p className="text-sm text-primary-200">ภาพรวมร้านอาหาร</p>
           </div>
-          <a
-            href="/"
-            className="text-sm text-primary-100 hover:text-white transition-colors flex items-center gap-1"
-          >
-            🛒 ไปหน้าร้านค้า →
-          </a>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="p-2 bg-primary-600 rounded-lg hover:bg-primary-500 transition-colors disabled:opacity-50"
+              title="รีเฟรชข้อมูล"
+            >
+              <RefreshCw size={20} className={isRefreshing ? 'animate-spin' : ''} />
+            </button>
+            <a
+              href="/"
+              className="text-sm text-primary-100 hover:text-white transition-colors flex items-center gap-1"
+            >
+              🛒 ไปหน้าร้านค้า →
+            </a>
+          </div>
         </div>
       </header>
 
