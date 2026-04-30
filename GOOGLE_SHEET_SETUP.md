@@ -1,21 +1,14 @@
-# 📊 การตั้งค่า Google Sheets API สำหรับร้านอาหาร
+# 📊 การตั้งค่า Google Sheets API สำหรับร้านอาหาร (เวอร์ชันอัปเกรด)
 
-คู่มือนี้จะช่วยคุณตั้งค่า Google Sheets และ Google Drive เพื่อใช้เป็นฐานข้อมูลสำหรับแอปพลิเคชัน
+คู่มือนี้จะช่วยคุณตั้งค่า Google Sheets และ Google Drive ให้ทำงานร่วมกับแอปได้โดยอัตโนมัติ
 
-## 1. เตรียม Google Sheets
+## 1. เตรียม Google Sheets & Drive
 1. สร้าง Google Sheets ใหม่
-2. สร้าง Sheet ย่อย 2 แผ่น โดยตั้งชื่อดังนี้:
-   - **Products**: (หัวตารางแถวแรก): `id`, `name`, `price`, `category`, `description`, `image`
-   - **Orders**: (หัวตารางแถวแรก): `id`, `name`, `phone`, `address`, `deliveryMethod`, `paymentMethod`, `cartItems`, `total`, `status`, `createdAt`, `slipFile`
+2. สร้าง Folder ใน Google Drive เพื่อเก็บรูปภาพ -> Share ให้เป็น **Anyone with the link** (Viewer) -> คัดลอก **Folder ID**
 
-## 2. เตรียม Google Drive
-1. สร้าง Folder ใน Google Drive เพื่อเก็บรูปภาพ
-2. คลิกขวาที่ Folder -> Share -> เปลี่ยนเป็น **Anyone with the link** (Viewer)
-3. คัดลอก **Folder ID** (ตัวอักษรหลัง `folders/` ใน URL)
-
-## 3. ตั้งค่า Google Apps Script
+## 2. ตั้งค่า Google Apps Script
 1. ใน Google Sheets ไปที่เมนู **Extensions** -> **Apps Script**
-2. คัดลอกโค้ดด้านล่างนี้ไปวาง:
+2. คัดลอกโค้ดด้านล่างนี้ไปวางทั้งหมด (แทนที่ของเดิม):
 
 ```javascript
 const SPREADSHEET_ID = 'ใส่_ID_ของ_Spreadsheet_ที่นี่';
@@ -26,17 +19,25 @@ function doGet(e) {
     const action = e.parameter.action;
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
+    // --- ระบบ Setup อัตโนมัติ ---
+    if (action === 'setup') {
+      setupSheets(ss);
+      return createJsonResponse({ status: "success", message: "สร้างแผ่นงาน Products และ Orders เรียบร้อยแล้ว!" });
+    }
+
     if (action === 'getProducts') {
       const sheet = ss.getSheetByName('Products');
+      if (!sheet) return createJsonResponse({ status: "error", message: "ไม่พบแผ่นงาน Products กรุณารัน setup ก่อน" });
       return createJsonResponse(getSheetDataAsJson(sheet));
     }
 
     if (action === 'getOrders') {
       const sheet = ss.getSheetByName('Orders');
+      if (!sheet) return createJsonResponse({ status: "error", message: "ไม่พบแผ่นงาน Orders กรุณารัน setup ก่อน" });
       return createJsonResponse(getSheetDataAsJson(sheet, true));
     }
 
-    return createJsonResponse({ status: "ok", message: "API is running 🚀" });
+    return createJsonResponse({ status: "ok", message: "API พร้อมใช้งาน 🚀 กรุณาใช้ ?action=setup เพื่อเริ่มต้น" });
   } catch (err) {
     return createJsonResponse({ status: "error", message: err.toString() });
   }
@@ -116,6 +117,20 @@ function doPost(e) {
   }
 }
 
+function setupSheets(ss) {
+  // สร้างแผ่น Products
+  let pSheet = ss.getSheetByName('Products');
+  if (!pSheet) pSheet = ss.insertSheet('Products');
+  pSheet.getRange(1, 1, 1, 6).setValues([['id', 'name', 'price', 'category', 'description', 'image']]);
+  pSheet.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#f3f3f3");
+
+  // สร้างแผ่น Orders
+  let oSheet = ss.getSheetByName('Orders');
+  if (!oSheet) oSheet = ss.insertSheet('Orders');
+  oSheet.getRange(1, 1, 1, 11).setValues([['id', 'name', 'phone', 'address', 'deliveryMethod', 'paymentMethod', 'cartItems', 'total', 'status', 'createdAt', 'slipFile']]);
+  oSheet.getRange(1, 1, 1, 11).setFontWeight("bold").setBackground("#f3f3f3");
+}
+
 function getSheetDataAsJson(sheet, parseCart = false) {
   const data = sheet.getDataRange().getValues();
   if (data.length <= 1) return [];
@@ -154,10 +169,10 @@ function uploadToDrive(base64Data, fileName) {
 }
 ```
 
-3. กดปุ่ม **Deploy** -> **New Deployment**
-4. เลือกประเภทเป็น **Web App**
-5. ตั้งค่า **Execute as: Me** และ **Who has access: Anyone**
-6. **สำคัญ:** เมื่อมีการแก้ไขโค้ดใน Apps Script คุณต้องกด **Deploy -> New Deployment** ใหม่ทุกครั้งเพื่อให้ URL เดิมอัปเดตข้อมูลตามโค้ดใหม่
+3. กดปุ่ม **Deploy -> New Deployment** (เลือก Web App, Execute as Me, Access Anyone)
+4. เมื่อได้ URL มาแล้ว ให้คุณเปิด URL นั้นในเบราว์เซอร์โดยเติม `?action=setup` ต่อท้าย เช่น:
+   `https://script.google.com/.../exec?action=setup`
+5. **เพียงเท่านี้ สคริปต์จะสร้างแผ่นงานและตั้งชื่อให้คุณโดยอัตโนมัติครับ!**
 
 ---
-*หมายเหตุ: อย่าลืมเปลี่ยน `SPREADSHEET_ID` และ `FOLDER_ID` ให้เป็นของคุณเอง*
+*หมายเหตุ: อย่าลืมแก้ SPREADSHEET_ID และ FOLDER_ID ในโค้ดก่อน Deploy ครับ*
