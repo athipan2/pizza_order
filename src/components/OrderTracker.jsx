@@ -36,7 +36,7 @@ function OrderTracker({ orders }) {
 
   const triggerNotification = (order) => {
     // แสดง UI แจ้งเตือน
-    setNotification(`ออเดอร์ #${order.id.toString().slice(-6)} อยู่ระหว่างจัดส่ง`);
+    setNotification(`ออเดอร์ #${order.id.toString().slice(-6)} กำลังจัดส่ง`);
 
     // เล่นเสียงแจ้งเตือน (Text-to-Speech)
     if ('speechSynthesis' in window) {
@@ -107,7 +107,7 @@ function OrderTracker({ orders }) {
     { status: OrderStatus.PENDING_PAYMENT, label: 'รอชำระเงิน', desc: 'กรุณาชำระเงิน' },
     { status: OrderStatus.PAID, label: 'ชำระแล้ว', desc: 'รอร้านยืนยัน' },
     { status: OrderStatus.PREPARING, label: 'กำลังทำ', desc: 'กำลังปรุงอาหาร' },
-    { status: OrderStatus.DELIVERED, label: 'ส่งแล้ว', desc: 'อยู่ระหว่างจัดส่ง' },
+    { status: OrderStatus.DELIVERED, label: 'กำลังจัดส่ง', desc: 'อยู่ระหว่างจัดส่ง' },
     { status: OrderStatus.COMPLETED, label: 'เสร็จสิ้น', desc: 'ออเดอร์สำเร็จ' }
   ];
 
@@ -192,7 +192,7 @@ function OrderTracker({ orders }) {
                         <p className="text-xs text-gray-400">{order.createdAt}</p>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status, true)}`}>
-                        {order.status}
+                        {order.status === OrderStatus.DELIVERED ? 'กำลังจัดส่ง' : order.status}
                       </span>
                     </div>
 
