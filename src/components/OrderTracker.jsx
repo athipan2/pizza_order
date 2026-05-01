@@ -172,6 +172,10 @@ function OrderTracker({ orders }) {
       {/* ผลการค้นหา */}
       {hasSearched && (
         <div className="border-t border-gray-100">
+          <div className="p-2 bg-gray-50 flex items-center justify-center gap-2 border-b border-gray-100">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-[10px] text-gray-400">อัปเดตสถานะอัตโนมัติ (เรียลไทม์)</span>
+          </div>
           {searchResult && searchResult.length > 0 ? (
             <div className="max-h-96 overflow-y-auto">
               <div className="p-3 bg-green-50 border-b border-green-100">

@@ -3,7 +3,7 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbzpRbl9CRaxtImZVzg6Lh9k
 export const googleSheetsApi = {
   async getProducts() {
     try {
-      const response = await fetch(`${API_URL}?action=getProducts`);
+      const response = await fetch(`${API_URL}?action=getProducts&_=${Date.now()}`);
       if (!response.ok) throw new Error('Network response was not ok');
       return await response.json();
     } catch (error) {
@@ -66,7 +66,7 @@ export const googleSheetsApi = {
 
   async getOrders() {
     try {
-      const response = await fetch(`${API_URL}?action=getOrders`);
+      const response = await fetch(`${API_URL}?action=getOrders&_=${Date.now()}`);
       if (!response.ok) throw new Error('Network response was not ok');
       return await response.json();
     } catch (error) {

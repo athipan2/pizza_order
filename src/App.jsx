@@ -13,6 +13,7 @@ function App() {
   const [products, setProducts] = useState(initialMenuItems);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
 
   // ตรวจสอบ URL path เพื่อกำหนดว่าเป็นหน้าแอดมินหรือลูกค้า
   const isAdminPage = window.location.pathname.startsWith('/admin');
@@ -43,8 +44,10 @@ function App() {
 
       // จัดการข้อมูลออเดอร์
       if (fetchedOrders) {
-        const oList = Array.isArray(fetchedOrders) ? fetchedOrders : (fetchedOrders.data || []);
-        if (Array.isArray(oList)) {
+        // ตรวจสอบว่ามีข้อมูลออเดอร์จริงๆ หรือไม่ (ไม่ใช่ error object หรือ empty error response)
+        const oList = Array.isArray(fetchedOrders) ? fetchedOrders : (fetchedOrders.data || null);
+
+        if (Array.isArray(oList) && oList.length > 0) {
           const sanitizedOrders = oList.map(o => {
             // ตรวจสอบเบอร์โทรศัพท์ (ถ้า 0 นำหน้าหายไปใน Sheets จะเหลือ 9 หลัก)
             let sanitizedPhone = o.phone ? o.phone.toString() : '';
@@ -61,6 +64,7 @@ function App() {
             };
           }).sort((a, b) => b.id - a.id);
           setOrders(sanitizedOrders);
+          setLastUpdated(new Date());
         }
       }
     } catch (error) {
