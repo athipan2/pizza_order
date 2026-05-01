@@ -45,12 +45,21 @@ function App() {
       if (fetchedOrders) {
         const oList = Array.isArray(fetchedOrders) ? fetchedOrders : (fetchedOrders.data || []);
         if (Array.isArray(oList)) {
-          const sanitizedOrders = oList.map(o => ({
-            ...o,
-            id: Number(o.id),
-            total: Number(o.total),
-            cartItems: Array.isArray(o.cartItems) ? o.cartItems : (typeof o.cartItems === 'string' ? JSON.parse(o.cartItems) : [])
-          })).sort((a, b) => b.id - a.id);
+          const sanitizedOrders = oList.map(o => {
+            // ตรวจสอบเบอร์โทรศัพท์ (ถ้า 0 นำหน้าหายไปใน Sheets จะเหลือ 9 หลัก)
+            let sanitizedPhone = o.phone ? o.phone.toString() : '';
+            if (sanitizedPhone.length === 9 && !sanitizedPhone.startsWith('0')) {
+              sanitizedPhone = '0' + sanitizedPhone;
+            }
+
+            return {
+              ...o,
+              id: Number(o.id),
+              phone: sanitizedPhone,
+              total: Number(o.total),
+              cartItems: Array.isArray(o.cartItems) ? o.cartItems : (typeof o.cartItems === 'string' ? JSON.parse(o.cartItems) : [])
+            };
+          }).sort((a, b) => b.id - a.id);
           setOrders(sanitizedOrders);
         }
       }

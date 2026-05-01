@@ -12,9 +12,16 @@ function OrderTracker({ orders }) {
     setHasSearched(true);
     
     // ค้นหาด้วยเบอร์โทรเท่านั้น (ค้นหาหลายออเดอร์ได้)
-    const foundOrders = orders.filter(order => 
-      order.phone.replace(/-/g, '') === searchQuery.replace(/-/g, '')
-    );
+    const foundOrders = orders.filter(order => {
+      const orderPhone = order.phone.toString().replace(/-/g, '');
+      const searchPhone = searchQuery.replace(/-/g, '');
+
+      // ถ้าเบอร์ในระบบมี 9 หลัก (กรณีเลข 0 นำหน้าหาย) ให้เติม 0 ข้างหน้าก่อนเทียบ
+      const normalizedOrderPhone = orderPhone.length === 9 ? '0' + orderPhone : orderPhone;
+      const normalizedSearchPhone = searchPhone.length === 9 ? '0' + searchPhone : searchPhone;
+
+      return normalizedOrderPhone === normalizedSearchPhone;
+    });
     
     setSearchResult(foundOrders);
   };
