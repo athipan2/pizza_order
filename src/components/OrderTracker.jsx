@@ -1,11 +1,53 @@
-import { useState } from 'react';
-import { Search, Package, CheckCircle, Clock, Truck, ChefHat, CreditCard } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Search, Package, CheckCircle, Clock, Truck, ChefHat, CreditCard, BellRing, X } from 'lucide-react';
 import { OrderStatus } from '../types';
 
 function OrderTracker({ orders }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [notification, setNotification] = useState(null);
+  const previousStatuses = useRef({});
+
+  // อัปเดตผลการค้นหาเมื่อข้อมูลออเดอร์จากเซิร์ฟเวอร์เปลี่ยน
+  useEffect(() => {
+    if (hasSearched && searchQuery) {
+      const searchPhone = searchQuery.replace(/-/g, '');
+      const normalizedSearchPhone = searchPhone.length === 9 ? '0' + searchPhone : searchPhone;
+
+      const foundOrders = orders.filter(order => {
+        const orderPhone = order.phone.toString().replace(/-/g, '');
+        const normalizedOrderPhone = orderPhone.length === 9 ? '0' + orderPhone : orderPhone;
+        return normalizedOrderPhone === normalizedSearchPhone;
+      });
+
+      // ตรวจสอบการเปลี่ยนสถานะเพื่อแจ้งเตือน
+      foundOrders.forEach(order => {
+        const prevStatus = previousStatuses.current[order.id];
+        if (prevStatus && prevStatus !== order.status && order.status === OrderStatus.DELIVERED) {
+          triggerNotification(order);
+        }
+        previousStatuses.current[order.id] = order.status;
+      });
+
+      setSearchResult(foundOrders);
+    }
+  }, [orders, hasSearched, searchQuery]);
+
+  const triggerNotification = (order) => {
+    // แสดง UI แจ้งเตือน
+    setNotification(`ออเดอร์ #${order.id.toString().slice(-6)} อยู่ระหว่างจัดส่ง`);
+
+    // เล่นเสียงแจ้งเตือน (Text-to-Speech)
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance('รอรับของได้เลย');
+      utterance.lang = 'th-TH';
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // หายไปเองหลัง 10 วินาที
+    setTimeout(() => setNotification(null), 10000);
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -70,7 +112,30 @@ function OrderTracker({ orders }) {
   ];
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-primary-100 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-sm border border-primary-100 overflow-hidden relative">
+      {/* แจ้งเตือนสถานะ */}
+      {notification && (
+        <div className="absolute top-4 left-4 right-4 z-50 animate-bounce">
+          <div className="bg-orange-500 text-white p-4 rounded-xl shadow-lg flex items-center justify-between border-2 border-white">
+            <div className="flex items-center gap-3">
+              <div className="bg-white text-orange-500 p-2 rounded-full">
+                <BellRing size={20} className="animate-ring" />
+              </div>
+              <div>
+                <p className="font-bold">รอรับของได้เลย!</p>
+                <p className="text-xs opacity-90">{notification}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setNotification(null)}
+              className="p-1 hover:bg-white/20 rounded-full"
+            >
+              <X size={20} />
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="p-4 bg-primary-500 text-white">
         <h2 className="font-bold text-lg flex items-center gap-2">
           <Package size={24} />

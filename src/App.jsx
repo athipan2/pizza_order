@@ -75,13 +75,12 @@ function App() {
   useEffect(() => {
     fetchData();
 
-    // ตั้งเวลาดึงข้อมูลอัตโนมัติทุก 2 นาทีสำหรับหน้าแอดมิน
-    let interval;
-    if (isAdminPage) {
-      interval = setInterval(() => {
-        fetchData(false);
-      }, 120000);
-    }
+    // ตั้งเวลาดึงข้อมูลอัตโนมัติ
+    // หน้าแอดมินทุก 2 นาที
+    // หน้าลูกค้าทุก 3 วินาที เพื่อติดตามสถานะออเดอร์เรียลไทม์
+    const interval = setInterval(() => {
+      fetchData(false);
+    }, isAdminPage ? 120000 : 3000);
 
     return () => clearInterval(interval);
   }, [isAdminPage]);
