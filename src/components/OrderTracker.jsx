@@ -113,24 +113,24 @@ function OrderTracker({ orders }) {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-primary-100 overflow-hidden relative">
-      {/* แจ้งเตือนสถานะ */}
+      {/* แจ้งเตือนสถานะ - ปรับเป็น fixed เพื่อให้เห็นชัดเจนทุกที่ */}
       {notification && (
-        <div className="absolute top-4 left-4 right-4 z-50 animate-bounce">
-          <div className="bg-orange-500 text-white p-4 rounded-xl shadow-lg flex items-center justify-between border-2 border-white">
+        <div className="fixed top-4 left-4 right-4 z-[9999] animate-bounce max-w-md mx-auto">
+          <div className="bg-orange-500 text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between border-2 border-white">
             <div className="flex items-center gap-3">
-              <div className="bg-white text-orange-500 p-2 rounded-full">
-                <BellRing size={20} className="animate-ring" />
+              <div className="bg-white text-orange-500 p-2.5 rounded-full shadow-inner">
+                <BellRing size={24} className="animate-ring" />
               </div>
               <div>
-                <p className="font-bold">รอรับของได้เลย!</p>
-                <p className="text-xs opacity-90">{notification}</p>
+                <p className="font-bold text-lg leading-tight">รอรับของได้เลย!</p>
+                <p className="text-sm opacity-90">{notification}</p>
               </div>
             </div>
             <button
               onClick={() => setNotification(null)}
-              className="p-1 hover:bg-white/20 rounded-full"
+              className="p-2 hover:bg-white/20 rounded-full transition-colors"
             >
-              <X size={20} />
+              <X size={24} />
             </button>
           </div>
         </div>
@@ -213,15 +213,21 @@ function OrderTracker({ orders }) {
                           
                           return (
                             <div key={step.status} className="flex items-start gap-4 relative">
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10 ${
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all duration-500 ${
                                 isActive ? getStatusColor(step.status, true) : 'bg-gray-200 text-gray-400'
-                              } ${isCurrent ? 'ring-4 ring-opacity-30 ring-primary-300' : ''}`}>
-                                {getStatusIcon(step.status)}
+                              } ${isCurrent ? 'ring-4 ring-opacity-30 ring-primary-300 scale-110' : ''}`}>
+                                <div className={isCurrent ? 'animate-pulse' : ''}>
+                                  {getStatusIcon(step.status)}
+                                </div>
                               </div>
                               <div className="flex-1 pt-1">
-                                <p className={`font-medium text-sm ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
+                                <p className={`font-medium text-sm transition-colors duration-500 ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
                                   {step.label}
-                                  {isCurrent && <span className="ml-2 text-xs text-primary-600">(ปัจจุบัน)</span>}
+                                  {isCurrent && (
+                                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-primary-100 text-primary-700 animate-pulse">
+                                      กำลังดำเนินการ
+                                    </span>
+                                  )}
                                 </p>
                                 <p className={`text-xs ${isActive ? 'text-gray-500' : 'text-gray-400'}`}>
                                   {step.desc}
