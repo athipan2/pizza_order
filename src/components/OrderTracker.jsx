@@ -1,11 +1,53 @@
-import { useState } from 'react';
-import { Search, Package, CheckCircle, Clock, Truck, ChefHat, CreditCard } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Search, Package, CheckCircle, Clock, Truck, ChefHat, CreditCard, BellRing, X } from 'lucide-react';
 import { OrderStatus } from '../types';
 
 function OrderTracker({ orders }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [notification, setNotification] = useState(null);
+  const previousStatuses = useRef({});
+
+  // อัปเดตผลการค้นหาเมื่อข้อมูลออเดอร์จากเซิร์ฟเวอร์เปลี่ยน
+  useEffect(() => {
+    if (hasSearched && searchQuery) {
+      const searchPhone = searchQuery.replace(/-/g, '');
+      const normalizedSearchPhone = searchPhone.length === 9 ? '0' + searchPhone : searchPhone;
+
+      const foundOrders = orders.filter(order => {
+        const orderPhone = order.phone.toString().replace(/-/g, '');
+        const normalizedOrderPhone = orderPhone.length === 9 ? '0' + orderPhone : orderPhone;
+        return normalizedOrderPhone === normalizedSearchPhone;
+      });
+
+      // ตรวจสอบการเปลี่ยนสถานะเพื่อแจ้งเตือน
+      foundOrders.forEach(order => {
+        const prevStatus = previousStatuses.current[order.id];
+        if (prevStatus && prevStatus !== order.status && order.status === OrderStatus.DELIVERED) {
+          triggerNotification(order);
+        }
+        previousStatuses.current[order.id] = order.status;
+      });
+
+      setSearchResult(foundOrders);
+    }
+  }, [orders, hasSearched, searchQuery]);
+
+  const triggerNotification = (order) => {
+    // แสดง UI แจ้งเตือน
+    setNotification(`ออเดอร์ #${order.id.toString().slice(-6)} กำลังจัดส่ง`);
+
+    // เล่นเสียงแจ้งเตือน (Text-to-Speech)
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance('รอรับของได้เลย');
+      utterance.lang = 'th-TH';
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // หายไปเองหลัง 10 วินาที
+    setTimeout(() => setNotification(null), 10000);
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -65,12 +107,35 @@ function OrderTracker({ orders }) {
     { status: OrderStatus.PENDING_PAYMENT, label: 'รอชำระเงิน', desc: 'กรุณาชำระเงิน' },
     { status: OrderStatus.PAID, label: 'ชำระแล้ว', desc: 'รอร้านยืนยัน' },
     { status: OrderStatus.PREPARING, label: 'กำลังทำ', desc: 'กำลังปรุงอาหาร' },
-    { status: OrderStatus.DELIVERED, label: 'ส่งแล้ว', desc: 'อยู่ระหว่างจัดส่ง' },
+    { status: OrderStatus.DELIVERED, label: 'กำลังจัดส่ง', desc: 'อยู่ระหว่างจัดส่ง' },
     { status: OrderStatus.COMPLETED, label: 'เสร็จสิ้น', desc: 'ออเดอร์สำเร็จ' }
   ];
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-primary-100 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-sm border border-primary-100 overflow-hidden relative">
+      {/* แจ้งเตือนสถานะ - ปรับเป็น fixed เพื่อให้เห็นชัดเจนทุกที่ */}
+      {notification && (
+        <div className="fixed top-4 left-4 right-4 z-[9999] animate-bounce max-w-md mx-auto">
+          <div className="bg-orange-500 text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between border-2 border-white">
+            <div className="flex items-center gap-3">
+              <div className="bg-white text-orange-500 p-2.5 rounded-full shadow-inner">
+                <BellRing size={24} className="animate-ring" />
+              </div>
+              <div>
+                <p className="font-bold text-lg leading-tight">รอรับของได้เลย!</p>
+                <p className="text-sm opacity-90">{notification}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setNotification(null)}
+              className="p-2 hover:bg-white/20 rounded-full transition-colors"
+            >
+              <X size={24} />
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="p-4 bg-primary-500 text-white">
         <h2 className="font-bold text-lg flex items-center gap-2">
           <Package size={24} />
@@ -107,6 +172,10 @@ function OrderTracker({ orders }) {
       {/* ผลการค้นหา */}
       {hasSearched && (
         <div className="border-t border-gray-100">
+          <div className="p-2 bg-gray-50 flex items-center justify-center gap-2 border-b border-gray-100">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-[10px] text-gray-400">อัปเดตสถานะอัตโนมัติ (เรียลไทม์)</span>
+          </div>
           {searchResult && searchResult.length > 0 ? (
             <div className="max-h-96 overflow-y-auto">
               <div className="p-3 bg-green-50 border-b border-green-100">
@@ -127,7 +196,7 @@ function OrderTracker({ orders }) {
                         <p className="text-xs text-gray-400">{order.createdAt}</p>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status, true)}`}>
-                        {order.status}
+                        {order.status === OrderStatus.DELIVERED ? 'กำลังจัดส่ง' : order.status}
                       </span>
                     </div>
 
@@ -144,15 +213,21 @@ function OrderTracker({ orders }) {
                           
                           return (
                             <div key={step.status} className="flex items-start gap-4 relative">
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10 ${
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all duration-500 ${
                                 isActive ? getStatusColor(step.status, true) : 'bg-gray-200 text-gray-400'
-                              } ${isCurrent ? 'ring-4 ring-opacity-30 ring-primary-300' : ''}`}>
-                                {getStatusIcon(step.status)}
+                              } ${isCurrent ? 'ring-4 ring-opacity-30 ring-primary-300 scale-110' : ''}`}>
+                                <div className={isCurrent ? 'animate-pulse' : ''}>
+                                  {getStatusIcon(step.status)}
+                                </div>
                               </div>
                               <div className="flex-1 pt-1">
-                                <p className={`font-medium text-sm ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
+                                <p className={`font-medium text-sm transition-colors duration-500 ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
                                   {step.label}
-                                  {isCurrent && <span className="ml-2 text-xs text-primary-600">(ปัจจุบัน)</span>}
+                                  {isCurrent && (
+                                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-primary-100 text-primary-700 animate-pulse">
+                                      กำลังดำเนินการ
+                                    </span>
+                                  )}
                                 </p>
                                 <p className={`text-xs ${isActive ? 'text-gray-500' : 'text-gray-400'}`}>
                                   {step.desc}

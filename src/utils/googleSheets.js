@@ -1,9 +1,9 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycbzpRbl9CRaxtImZVzg6Lh9kaH8faO-jAtpYeBIABVjl5vV84R2uRLew9Pi4yinTdbBG/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxjKB5f36aKNfvPJBlGcVL2YxnRLyaYSZgy2oqfQDCnkn9-7Uo6NC2RfGDtxhUXM7nu/exec';
 
 export const googleSheetsApi = {
   async getProducts() {
     try {
-      const response = await fetch(`${API_URL}?action=getProducts`);
+      const response = await fetch(`${API_URL}?action=getProducts&_=${Date.now()}`);
       if (!response.ok) throw new Error('Network response was not ok');
       return await response.json();
     } catch (error) {
@@ -16,6 +16,7 @@ export const googleSheetsApi = {
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'addProduct', ...product }),
       });
       return await response.json();
@@ -29,6 +30,7 @@ export const googleSheetsApi = {
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'updateProduct', ...product }),
       });
       return await response.json();
@@ -42,6 +44,7 @@ export const googleSheetsApi = {
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'deleteProduct', id: productId }),
       });
       return await response.json();
@@ -55,6 +58,7 @@ export const googleSheetsApi = {
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'addOrder', ...order }),
       });
       return await response.json();
@@ -66,7 +70,7 @@ export const googleSheetsApi = {
 
   async getOrders() {
     try {
-      const response = await fetch(`${API_URL}?action=getOrders`);
+      const response = await fetch(`${API_URL}?action=getOrders&_=${Date.now()}`);
       if (!response.ok) throw new Error('Network response was not ok');
       return await response.json();
     } catch (error) {
@@ -77,11 +81,27 @@ export const googleSheetsApi = {
 
   async updateOrderStatus(orderId, status) {
     try {
+      console.log(`Updating order ${orderId} status to: ${status}`);
       const response = await fetch(API_URL, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
         body: JSON.stringify({ action: 'updateOrderStatus', id: orderId, status }),
       });
-      return await response.json();
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Update result:', result);
+
+      if (result.status === 'error') {
+        throw new Error(result.message || 'Unknown error from Google Sheets');
+      }
+
+      return result;
     } catch (error) {
       console.error('Error updating order status:', error);
       throw error;

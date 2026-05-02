@@ -37,9 +37,9 @@ function doGet(e) {
       return createJsonResponse(getSheetDataAsJson(sheet, true));
     }
 
-    return createJsonResponse({ status: "ok", message: "API พร้อมใช้งาน 🚀 กรุณาใช้ ?action=setup เพื่อเริ่มต้น" });
+    return createJsonResponse({ status: "error", message: "Unknown GET action: " + action });
   } catch (err) {
-    return createJsonResponse({ status: "error", message: err.toString() });
+    return createJsonResponse({ status: "error", message: "GET Error: " + err.toString() });
   }
 }
 
@@ -48,6 +48,11 @@ function doPost(e) {
     const data = JSON.parse(e.postData.contents);
     const action = data.action;
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+    if (action === 'setup') {
+      setupSheets(ss);
+      return createJsonResponse({ status: "success", message: "Setup complete" });
+    }
 
     if (action === 'addProduct') {
       const sheet = ss.getSheetByName('Products');
@@ -104,16 +109,27 @@ function doPost(e) {
     if (action === 'updateOrderStatus') {
       const sheet = ss.getSheetByName('Orders');
       const dataRange = sheet.getDataRange().getValues();
+      let found = false;
       for (let i = 1; i < dataRange.length; i++) {
-        if (dataRange[i][0] == data.id) {
+        // ใช้ toString() เพื่อป้องกันปัญหาการเปรียบเทียบตัวเลขที่มีรูปแบบต่างกัน
+        if (dataRange[i][0].toString() === data.id.toString()) {
           sheet.getRange(i + 1, 9).setValue(data.status);
+          found = true;
           break;
         }
       }
-      return createJsonResponse({ status: 'success' });
+
+      if (found) {
+        SpreadsheetApp.flush(); // บังคับให้บันทึกข้อมูลลง Sheet ทันที
+        return createJsonResponse({ status: 'success' });
+      } else {
+        return createJsonResponse({ status: 'error', message: 'ไม่พบออเดอร์ ID: ' + data.id });
+      }
     }
+
+    return createJsonResponse({ status: "error", message: "Unknown POST action: " + action });
   } catch (err) {
-    return createJsonResponse({ status: "error", message: err.toString() });
+    return createJsonResponse({ status: "error", message: "POST Error: " + err.toString() });
   }
 }
 

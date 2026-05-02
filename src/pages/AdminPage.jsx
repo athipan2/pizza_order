@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ChevronDown, RefreshCw } from 'lucide-react';
 import { OrderStatus } from '../types';
 
 const statusOptions = [
@@ -9,7 +9,7 @@ const statusOptions = [
   { value: OrderStatus.COMPLETED, label: '✨ เสร็จสิ้น', color: 'bg-green-100 text-green-700' }
 ];
 
-function AdminPage({ orders, onUpdateStatus, onBack }) {
+function AdminPage({ orders, onUpdateStatus, onBack, updatingOrders = new Set() }) {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
@@ -54,21 +54,30 @@ function AdminPage({ orders, onUpdateStatus, onBack }) {
                       <span className="text-sm text-gray-500">ออเดอร์ #{order.id.toString().slice(-6)}</span>
                       <p className="text-sm text-gray-400">{order.createdAt}</p>
                     </div>
-                    <div className="relative">
-                      <select
-                        value={order.status}
-                        onChange={(e) => onUpdateStatus(order.id, e.target.value)}
-                        className={`appearance-none px-3 py-1.5 rounded-lg font-medium text-sm pr-8 cursor-pointer ${
-                          statusOptions.find(s => s.value === order.status)?.color || 'bg-gray-100 text-gray-700'
-                        }`}
-                      >
-                        {statusOptions.map(option => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <div className="flex items-center gap-2">
+                      {updatingOrders.has(order.id) && (
+                        <div className="flex items-center gap-1 text-xs text-primary-600 font-medium animate-pulse">
+                          <RefreshCw size={12} className="animate-spin" />
+                          กำลังบันทึก...
+                        </div>
+                      )}
+                      <div className="relative">
+                        <select
+                          value={order.status}
+                          disabled={updatingOrders.has(order.id)}
+                          onChange={(e) => onUpdateStatus(order.id, e.target.value)}
+                          className={`appearance-none px-3 py-1.5 rounded-lg font-medium text-sm pr-8 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                            statusOptions.find(s => s.value === order.status)?.color || 'bg-gray-100 text-gray-700'
+                          }`}
+                        >
+                          {statusOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      </div>
                     </div>
                   </div>
                 </div>
