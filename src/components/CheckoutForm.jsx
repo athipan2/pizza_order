@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Upload, CreditCard, QrCode, Banknote, ArrowLeft } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Upload, CreditCard, QrCode, Banknote, ArrowLeft, MapPin, AlertCircle, Loader2 } from 'lucide-react';
 import { PaymentMethod, DeliveryMethod } from '../types';
 
 function CheckoutForm({ cartItems, total, onSubmit, onCancel }) {
@@ -8,9 +8,49 @@ function CheckoutForm({ cartItems, total, onSubmit, onCancel }) {
     phone: '',
     address: '',
     deliveryMethod: DeliveryMethod.DELIVERY,
-    paymentMethod: PaymentMethod.PROMPTPAY
+    paymentMethod: PaymentMethod.PROMPTPAY,
+    location: null
   });
   const [slipFile, setSlipFile] = useState(null);
+  const [locationError, setLocationError] = useState(null);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+
+  useEffect(() => {
+    if (formData.deliveryMethod === DeliveryMethod.DELIVERY) {
+      requestLocation();
+    }
+  }, [formData.deliveryMethod]);
+
+  const requestLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('เบราว์เซอร์ของคุณไม่รองรับการขอตำแหน่งพิกัด');
+      return;
+    }
+
+    setIsGettingLocation(true);
+    setLocationError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setFormData(prev => ({
+          ...prev,
+          location: `${latitude},${longitude}`
+        }));
+        setIsGettingLocation(false);
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        setIsGettingLocation(false);
+        if (error.code === error.PERMISSION_DENIED) {
+          setLocationError('กรุณาอนุญาตการเข้าถึงตำแหน่งเพื่อให้ทางร้านสามารถจัดส่งสินค้าได้ถูกต้อง');
+        } else {
+          setLocationError('ไม่สามารถดึงข้อมูลตำแหน่งได้ กรุณาลองใหม่อีกครั้ง');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,6 +63,11 @@ function CheckoutForm({ cartItems, total, onSubmit, onCancel }) {
         reader.onloadend = () => resolve(reader.result);
         reader.readAsDataURL(slipFile);
       });
+    }
+
+    if (formData.deliveryMethod === DeliveryMethod.DELIVERY && !formData.location) {
+      alert(locationError || 'กรุณาอนุญาตการเข้าถึงตำแหน่งก่อนสั่งซื้อ');
+      return;
     }
 
     onSubmit({
@@ -119,18 +164,63 @@ function CheckoutForm({ cartItems, total, onSubmit, onCancel }) {
 
         {/* ที่อยู่ - แสดงเฉพาะเมื่อเลือกเดลิเวอรี่ */}
         {formData.deliveryMethod === DeliveryMethod.DELIVERY ? (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              ที่อยู่จัดส่ง <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              required
-              rows={3}
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none resize-none"
-              placeholder="กรอกที่อยู่จัดส่ง"
-            />
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                ที่อยู่จัดส่ง <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                required
+                rows={3}
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none resize-none"
+                placeholder="กรอกที่อยู่จัดส่ง"
+              />
+            </div>
+
+            {/* ส่วนแสดงสถานะตำแหน่ง */}
+            <div className={`p-3 rounded-xl border-2 flex items-start gap-3 transition-colors ${
+              formData.location
+                ? 'border-green-200 bg-green-50'
+                : locationError
+                ? 'border-red-200 bg-red-50'
+                : 'border-gray-100 bg-gray-50'
+            }`}>
+              <div className={`mt-0.5 ${formData.location ? 'text-green-600' : locationError ? 'text-red-600' : 'text-gray-400'}`}>
+                {isGettingLocation ? (
+                  <Loader2 size={20} className="animate-spin" />
+                ) : (
+                  <MapPin size={20} />
+                )}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm font-bold ${formData.location ? 'text-green-700' : locationError ? 'text-red-700' : 'text-gray-600'}`}>
+                    {isGettingLocation ? 'กำลังดึงพิกัดตำแหน่ง...' : formData.location ? 'บันทึกพิกัดตำแหน่งแล้ว' : 'ต้องการพิกัดตำแหน่ง'}
+                  </span>
+                  {!isGettingLocation && (
+                    <button
+                      type="button"
+                      onClick={requestLocation}
+                      className="text-xs font-bold text-primary-600 hover:text-primary-700 underline"
+                    >
+                      {formData.location ? 'อัปเดตตำแหน่ง' : 'ลองใหม่อีกครั้ง'}
+                    </button>
+                  )}
+                </div>
+                {locationError ? (
+                  <p className="text-xs text-red-600 mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle size={12} />
+                    {locationError}
+                  </p>
+                ) : formData.location ? (
+                  <p className="text-xs text-green-600 mt-0.5">พิกัด: {formData.location}</p>
+                ) : (
+                  <p className="text-xs text-gray-500 mt-0.5">ระบบจะดึงพิกัดอัตโนมัติเพื่อความแม่นยำในการส่ง</p>
+                )}
+              </div>
+            </div>
           </div>
         ) : (
           /* รับหน้าร้าน - แสดงข้อความแจ้งเตือน */

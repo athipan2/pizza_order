@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronDown, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ChevronDown, RefreshCw, MapPin, ExternalLink } from 'lucide-react';
 import { OrderStatus } from '../types';
 
 const statusOptions = [
@@ -97,7 +97,23 @@ function AdminPage({ orders, onUpdateStatus, onBack, updatingOrders = new Set() 
                       </span>
                     </p>
                     {order.deliveryMethod === 'เดลิเวอรี่' && (
-                      <p><span className="text-gray-500">ที่อยู่:</span> {order.address}</p>
+                      <>
+                        <p><span className="text-gray-500">ที่อยู่:</span> {order.address}</p>
+                        {order.location && (
+                          <div className="mt-2">
+                            <a
+                              href={`https://www.google.com/maps?q=${order.location}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors text-xs font-bold"
+                            >
+                              <MapPin size={14} />
+                              เปิดแผนที่
+                              <ExternalLink size={12} />
+                            </a>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
