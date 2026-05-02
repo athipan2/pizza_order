@@ -120,7 +120,7 @@ function App() {
     } catch (error) {
       // 5. หากพลาด ให้แจ้งเตือนและย้อนกลับ (Rollback)
       console.error('Failed to update status to Google Sheets:', error);
-      alert('⚠️ เกิดข้อผิดพลาดในการบันทึกข้อมูลไปยังระบบหลังบ้าน ออเดอร์อาจไม่ได้รับการอัปเดต!');
+      alert(`⚠️ เกิดข้อผิดพลาดในการบันทึกข้อมูล: ${error.message}\n\nกรุณาตรวจสอบว่าได้อัปเดต Google Apps Script เป็นเวอร์ชันล่าสุดแล้ว`);
       setOrders(oldOrders);
     } finally {
       // 6. ยกเลิกสถานะกำลังบันทึก

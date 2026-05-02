@@ -37,9 +37,9 @@ function doGet(e) {
       return createJsonResponse(getSheetDataAsJson(sheet, true));
     }
 
-    return createJsonResponse({ status: "ok", message: "API พร้อมใช้งาน 🚀 กรุณาใช้ ?action=setup เพื่อเริ่มต้น" });
+    return createJsonResponse({ status: "error", message: "Unknown GET action: " + action });
   } catch (err) {
-    return createJsonResponse({ status: "error", message: err.toString() });
+    return createJsonResponse({ status: "error", message: "GET Error: " + err.toString() });
   }
 }
 
@@ -48,6 +48,11 @@ function doPost(e) {
     const data = JSON.parse(e.postData.contents);
     const action = data.action;
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+    if (action === 'setup') {
+      setupSheets(ss);
+      return createJsonResponse({ status: "success", message: "Setup complete" });
+    }
 
     if (action === 'addProduct') {
       const sheet = ss.getSheetByName('Products');
@@ -121,8 +126,10 @@ function doPost(e) {
         return createJsonResponse({ status: 'error', message: 'ไม่พบออเดอร์ ID: ' + data.id });
       }
     }
+
+    return createJsonResponse({ status: "error", message: "Unknown POST action: " + action });
   } catch (err) {
-    return createJsonResponse({ status: "error", message: err.toString() });
+    return createJsonResponse({ status: "error", message: "POST Error: " + err.toString() });
   }
 }
 

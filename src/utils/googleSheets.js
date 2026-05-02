@@ -1,4 +1,4 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycbzpRbl9CRaxtImZVzg6Lh9kaH8faO-jAtpYeBIABVjl5vV84R2uRLew9Pi4yinTdbBG/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxjKB5f36aKNfvPJBlGcVL2YxnRLyaYSZgy2oqfQDCnkn9-7Uo6NC2RfGDtxhUXM7nu/exec';
 
 export const googleSheetsApi = {
   async getProducts() {
@@ -16,6 +16,7 @@ export const googleSheetsApi = {
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'addProduct', ...product }),
       });
       return await response.json();
@@ -29,6 +30,7 @@ export const googleSheetsApi = {
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'updateProduct', ...product }),
       });
       return await response.json();
@@ -42,6 +44,7 @@ export const googleSheetsApi = {
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'deleteProduct', id: productId }),
       });
       return await response.json();
@@ -55,6 +58,7 @@ export const googleSheetsApi = {
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'addOrder', ...order }),
       });
       return await response.json();
