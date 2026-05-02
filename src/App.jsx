@@ -33,7 +33,7 @@ function App() {
       // จัดการข้อมูลสินค้า
       if (fetchedProducts) {
         const pList = Array.isArray(fetchedProducts) ? fetchedProducts : (fetchedProducts.data || []);
-        if (Array.isArray(pList) && pList.length > 0) {
+        if (Array.isArray(pList)) {
           const sanitizedProducts = pList.map(p => ({
             ...p,
             id: Number(p.id),
@@ -46,9 +46,9 @@ function App() {
       // จัดการข้อมูลออเดอร์
       if (fetchedOrders) {
         // ตรวจสอบว่ามีข้อมูลออเดอร์จริงๆ หรือไม่ (ไม่ใช่ error object หรือ empty error response)
-        const oList = Array.isArray(fetchedOrders) ? fetchedOrders : (fetchedOrders.data || null);
+        const oList = Array.isArray(fetchedOrders) ? fetchedOrders : (fetchedOrders.data || []);
 
-        if (Array.isArray(oList) && oList.length > 0) {
+        if (Array.isArray(oList)) {
           const sanitizedOrders = oList.map(o => {
             // ตรวจสอบเบอร์โทรศัพท์ (ถ้า 0 นำหน้าหายไปใน Sheets จะเหลือ 9 หลัก)
             let sanitizedPhone = o.phone ? o.phone.toString() : '';
