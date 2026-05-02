@@ -14,6 +14,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [updatingOrders, setUpdatingOrders] = useState(new Set()); // ติดตามออเดอร์ที่กำลังบันทึก
 
   // ตรวจสอบ URL path เพื่อกำหนดว่าเป็นหน้าแอดมินหรือลูกค้า
   const isAdminPage = window.location.pathname.startsWith('/admin');
@@ -99,15 +100,35 @@ function App() {
   };
 
   const handleUpdateStatus = async (orderId, newStatus) => {
+    // 1. เก็บสถานะเดิมไว้ก่อน (เพื่อใช้ Rollback ถ้าบันทึกไม่สำเร็จ)
+    const oldOrders = [...orders];
+
+    // 2. แสดงสถานะกำลังบันทึก
+    setUpdatingOrders(prev => new Set(prev).add(orderId));
+
+    // 3. อัปเดต UI ทันที (Optimistic Update)
     setOrders(prev =>
       prev.map(order =>
         order.id === orderId ? { ...order, status: newStatus } : order
       )
     );
+
     try {
+      // 4. ส่งข้อมูลไปที่ Google Sheets
       await googleSheetsApi.updateOrderStatus(orderId, newStatus);
+      console.log(`Successfully updated order ${orderId} to ${newStatus}`);
     } catch (error) {
+      // 5. หากพลาด ให้แจ้งเตือนและย้อนกลับ (Rollback)
       console.error('Failed to update status to Google Sheets:', error);
+      alert('⚠️ เกิดข้อผิดพลาดในการบันทึกข้อมูลไปยังระบบหลังบ้าน ออเดอร์อาจไม่ได้รับการอัปเดต!');
+      setOrders(oldOrders);
+    } finally {
+      // 6. ยกเลิกสถานะกำลังบันทึก
+      setUpdatingOrders(prev => {
+        const next = new Set(prev);
+        next.delete(orderId);
+        return next;
+      });
     }
   };
 
@@ -175,6 +196,7 @@ function App() {
               orders={orders}
               onUpdateStatus={handleUpdateStatus}
               onBack={() => setAdminView('dashboard')}
+              updatingOrders={updatingOrders}
             />
           )}
           {adminView === 'products' && (

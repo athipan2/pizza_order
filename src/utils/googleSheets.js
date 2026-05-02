@@ -77,11 +77,27 @@ export const googleSheetsApi = {
 
   async updateOrderStatus(orderId, status) {
     try {
+      console.log(`Updating order ${orderId} status to: ${status}`);
       const response = await fetch(API_URL, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
         body: JSON.stringify({ action: 'updateOrderStatus', id: orderId, status }),
       });
-      return await response.json();
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Update result:', result);
+
+      if (result.status === 'error') {
+        throw new Error(result.message || 'Unknown error from Google Sheets');
+      }
+
+      return result;
     } catch (error) {
       console.error('Error updating order status:', error);
       throw error;

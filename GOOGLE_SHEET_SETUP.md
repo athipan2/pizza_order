@@ -104,13 +104,22 @@ function doPost(e) {
     if (action === 'updateOrderStatus') {
       const sheet = ss.getSheetByName('Orders');
       const dataRange = sheet.getDataRange().getValues();
+      let found = false;
       for (let i = 1; i < dataRange.length; i++) {
-        if (dataRange[i][0] == data.id) {
+        // ใช้ toString() เพื่อป้องกันปัญหาการเปรียบเทียบตัวเลขที่มีรูปแบบต่างกัน
+        if (dataRange[i][0].toString() === data.id.toString()) {
           sheet.getRange(i + 1, 9).setValue(data.status);
+          found = true;
           break;
         }
       }
-      return createJsonResponse({ status: 'success' });
+
+      if (found) {
+        SpreadsheetApp.flush(); // บังคับให้บันทึกข้อมูลลง Sheet ทันที
+        return createJsonResponse({ status: 'success' });
+      } else {
+        return createJsonResponse({ status: 'error', message: 'ไม่พบออเดอร์ ID: ' + data.id });
+      }
     }
   } catch (err) {
     return createJsonResponse({ status: "error", message: err.toString() });
