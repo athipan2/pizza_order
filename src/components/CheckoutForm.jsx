@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Upload, CreditCard, QrCode, Banknote, ArrowLeft, MapPin, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
 import { PaymentMethod, DeliveryMethod } from '../types';
 
@@ -14,6 +14,13 @@ function CheckoutForm({ cartItems, total, onSubmit, onCancel }) {
   const [slipFile, setSlipFile] = useState(null);
   const [locationError, setLocationError] = useState(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+
+  // ขอพิกัดอัตโนมัติเมื่อเลือกเดลิเวอรี่
+  useEffect(() => {
+    if (formData.deliveryMethod === DeliveryMethod.DELIVERY && !formData.location && !locationError && !isGettingLocation) {
+      requestLocation();
+    }
+  }, [formData.deliveryMethod]);
 
   const requestLocation = () => {
     if (!navigator.geolocation) {

@@ -100,7 +100,18 @@ function AdminPage({ orders, onUpdateStatus, onBack, updatingOrders = new Set() 
                       <>
                         <p><span className="text-gray-500">ที่อยู่:</span> {order.address}</p>
                         {order.location && (
-                          <div className="mt-2">
+                          <div className="mt-3 space-y-2">
+                            <div className="w-full h-48 rounded-xl overflow-hidden border border-gray-200 shadow-inner">
+                              <iframe
+                                width="100%"
+                                height="100%"
+                                frameBorder="0"
+                                scrolling="no"
+                                marginHeight="0"
+                                marginWidth="0"
+                                src={`https://maps.google.com/maps?q=${order.location}&z=15&output=embed`}
+                              ></iframe>
+                            </div>
                             <a
                               href={`https://www.google.com/maps?q=${order.location}`}
                               target="_blank"
@@ -108,7 +119,7 @@ function AdminPage({ orders, onUpdateStatus, onBack, updatingOrders = new Set() 
                               className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors text-xs font-bold"
                             >
                               <MapPin size={14} />
-                              เปิดแผนที่
+                              เปิดแผนที่ขนาดใหญ่
                               <ExternalLink size={12} />
                             </a>
                           </div>
