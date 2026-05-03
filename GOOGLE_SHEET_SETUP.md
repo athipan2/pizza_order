@@ -11,12 +11,18 @@
 2. คัดลอกโค้ดด้านล่างนี้ไปวางทั้งหมด (แทนที่ของเดิม):
 
 ```javascript
+// ⚠️ แก้ไขจุดสำคัญ 2 จุดนี้ก่อนนำไปใช้งาน
 const SPREADSHEET_ID = 'ใส่_ID_ของ_Spreadsheet_ที่นี่';
 const FOLDER_ID = 'ใส่_ID_ของ_Folder_ใน_Google_Drive_ที่นี่';
 
 function doGet(e) {
   try {
     const action = e.parameter.action;
+
+    if (!SPREADSHEET_ID || SPREADSHEET_ID.includes('ใส่_ID')) {
+      return createJsonResponse({ status: "error", message: "กรุณาใส่ SPREADSHEET_ID ในโค้ด Apps Script" });
+    }
+
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
     // --- ระบบ Setup อัตโนมัติ ---
