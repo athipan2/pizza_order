@@ -1,4 +1,4 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycbyOa6s3xJfcOLKodXBb5LB5KKd78EzlpayhsEIATHtMS9OFkDzVCspWWOeekyEgOwus/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycby2Cgl2eT-C5ILGMqqkWn_ZkWfpgAuQim35_FqsgKs5RC4oPKoZSZAYKG5bqvt6Rkkp/exec';
 
 export const googleSheetsApi = {
   async getProducts() {
