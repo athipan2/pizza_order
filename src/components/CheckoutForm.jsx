@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Upload, CreditCard, QrCode, Banknote, ArrowLeft, MapPin, AlertCircle, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { Upload, CreditCard, QrCode, Banknote, ArrowLeft, MapPin, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
 import { PaymentMethod, DeliveryMethod } from '../types';
 
 function CheckoutForm({ cartItems, total, onSubmit, onCancel }) {
@@ -14,12 +14,6 @@ function CheckoutForm({ cartItems, total, onSubmit, onCancel }) {
   const [slipFile, setSlipFile] = useState(null);
   const [locationError, setLocationError] = useState(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
-
-  useEffect(() => {
-    if (formData.deliveryMethod === DeliveryMethod.DELIVERY) {
-      requestLocation();
-    }
-  }, [formData.deliveryMethod]);
 
   const requestLocation = () => {
     if (!navigator.geolocation) {
@@ -179,47 +173,61 @@ function CheckoutForm({ cartItems, total, onSubmit, onCancel }) {
               />
             </div>
 
-            {/* ส่วนแสดงสถานะตำแหน่ง */}
-            <div className={`p-3 rounded-xl border-2 flex items-start gap-3 transition-colors ${
-              formData.location
-                ? 'border-green-200 bg-green-50'
-                : locationError
-                ? 'border-red-200 bg-red-50'
-                : 'border-gray-100 bg-gray-50'
-            }`}>
-              <div className={`mt-0.5 ${formData.location ? 'text-green-600' : locationError ? 'text-red-600' : 'text-gray-400'}`}>
-                {isGettingLocation ? (
-                  <Loader2 size={20} className="animate-spin" />
-                ) : (
-                  <MapPin size={20} />
-                )}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <span className={`text-sm font-bold ${formData.location ? 'text-green-700' : locationError ? 'text-red-700' : 'text-gray-600'}`}>
-                    {isGettingLocation ? 'กำลังดึงพิกัดตำแหน่ง...' : formData.location ? 'บันทึกพิกัดตำแหน่งแล้ว' : 'ต้องการพิกัดตำแหน่ง'}
-                  </span>
-                  {!isGettingLocation && (
-                    <button
-                      type="button"
-                      onClick={requestLocation}
-                      className="text-xs font-bold text-primary-600 hover:text-primary-700 underline"
-                    >
-                      {formData.location ? 'อัปเดตตำแหน่ง' : 'ลองใหม่อีกครั้ง'}
-                    </button>
+            {/* ส่วนขอพิกัดตำแหน่ง */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                พิกัดที่อยู่จัดส่ง <span className="text-red-500">*</span>
+              </label>
+
+              {!formData.location ? (
+                <button
+                  type="button"
+                  onClick={requestLocation}
+                  disabled={isGettingLocation}
+                  className={`w-full py-4 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all ${
+                    locationError
+                      ? 'border-red-300 bg-red-50 text-red-600'
+                      : 'border-primary-300 bg-primary-50 text-primary-600 hover:bg-primary-100'
+                  }`}
+                >
+                  {isGettingLocation ? (
+                    <>
+                      <Loader2 size={24} className="animate-spin" />
+                      <span className="font-bold">กำลังดึงพิกัดตำแหน่ง...</span>
+                    </>
+                  ) : (
+                    <>
+                      <MapPin size={24} />
+                      <span className="font-bold text-lg">กดเพื่อยืนยันตำแหน่งลูกค้า</span>
+                      <p className="text-xs text-gray-500 px-4 text-center">ทางร้านขออนุญาตเข้าถึงตำแหน่งเพื่อความแม่นยำในการจัดส่ง</p>
+                    </>
                   )}
+                </button>
+              ) : (
+                <div className="p-4 rounded-xl border-2 border-green-200 bg-green-50 flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                    <CheckCircle size={24} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-green-800 font-bold">บันทึกพิกัดตำแหน่งแล้ว</p>
+                    <p className="text-xs text-green-600">พิกัด: {formData.location}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={requestLocation}
+                    className="text-xs font-bold text-primary-600 underline"
+                  >
+                    เปลี่ยนตำแหน่ง
+                  </button>
                 </div>
-                {locationError ? (
-                  <p className="text-xs text-red-600 mt-1 flex items-center gap-1 font-medium">
-                    <AlertCircle size={12} />
-                    {locationError}
-                  </p>
-                ) : formData.location ? (
-                  <p className="text-xs text-green-600 mt-0.5">พิกัด: {formData.location}</p>
-                ) : (
-                  <p className="text-xs text-gray-500 mt-0.5">ระบบจะดึงพิกัดอัตโนมัติเพื่อความแม่นยำในการส่ง</p>
-                )}
-              </div>
+              )}
+
+              {locationError && (
+                <div className="p-3 rounded-lg bg-red-100 text-red-700 text-xs flex items-start gap-2">
+                  <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                  <p>{locationError}</p>
+                </div>
+              )}
             </div>
           </div>
         ) : (
