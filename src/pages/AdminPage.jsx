@@ -113,14 +113,14 @@ function AdminPage({ orders, onUpdateStatus, onBack, updatingOrders = new Set() 
                               ></iframe>
                             </div>
                             <a
-                              href={`https://www.google.com/maps?q=${order.location}`}
+                              href={`https://www.google.com/maps/search/?api=1&query=${order.location}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors text-xs font-bold"
+                              className="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors text-sm font-bold shadow-sm"
                             >
-                              <MapPin size={14} />
-                              เปิดแผนที่ขนาดใหญ่
-                              <ExternalLink size={12} />
+                              <MapPin size={18} />
+                              เปิดแผนที่นำทางไปยังลูกค้า
+                              <ExternalLink size={16} />
                             </a>
                           </div>
                         )}

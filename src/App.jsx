@@ -65,11 +65,21 @@ function App() {
                 sanitizedPhone = '0' + sanitizedPhone;
               }
 
+              // ตรวจสอบว่ามีพิกัดที่ซ่อนอยู่ใน key อื่นหรือไม่ (กรณี header ใน Sheets ไม่ตรง)
+              let location = o.location;
+              if (!location && o[""]) {
+                const coordRegex = /^-?\d+\.\d+,\s?-?\d+\.\d+$/;
+                if (coordRegex.test(o[""])) {
+                  location = o[""];
+                }
+              }
+
               return {
                 ...o,
                 id: Number(o.id),
                 phone: sanitizedPhone,
                 total: Number(o.total),
+                location: location,
                 cartItems: Array.isArray(o.cartItems) ? o.cartItems : (typeof o.cartItems === 'string' ? JSON.parse(o.cartItems) : [])
               };
             }).sort((a, b) => b.id - a.id);

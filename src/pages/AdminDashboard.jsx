@@ -7,7 +7,8 @@ import {
   TrendingUp,
   Clock,
   BarChart3,
-  RefreshCw
+  RefreshCw,
+  MapPin
 } from 'lucide-react';
 import { OrderStatus } from '../types';
 
@@ -187,11 +188,25 @@ function AdminDashboard({ orders, products, onNavigate, onRefresh, isRefreshing 
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className={`px-2 py-1 rounded-lg text-xs font-medium ${getStatusColor(order.status)}`}>
-                      {order.status}
-                    </span>
-                    <p className="text-xs text-gray-400 mt-1">{order.createdAt}</p>
+                  <div className="flex items-center gap-4">
+                    {order.location && (
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${order.location}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+                        title="ดูแผนที่จุดส่ง"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MapPin size={20} />
+                      </a>
+                    )}
+                    <div className="text-right">
+                      <span className={`px-2 py-1 rounded-lg text-xs font-medium ${getStatusColor(order.status)}`}>
+                        {order.status}
+                      </span>
+                      <p className="text-xs text-gray-400 mt-1">{order.createdAt}</p>
+                    </div>
                   </div>
                 </div>
               ))}
