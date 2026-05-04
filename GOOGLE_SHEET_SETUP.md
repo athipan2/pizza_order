@@ -184,7 +184,7 @@ function uploadToDrive(base64Data, fileName) {
     const folder = DriveApp.getFolderById(FOLDER_ID);
     const file = folder.createFile(blob);
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    return file.getUrl().replace('/view?usp=drivesdk', '/thumbnail?sz=w800');
+    return file.getUrl();
   } catch (e) {
     return base64Data;
   }

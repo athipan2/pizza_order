@@ -6,6 +6,7 @@ import ProductManager from './pages/ProductManager';
 import SalesHistory from './pages/SalesHistory';
 import { initialMenuItems } from './data/menu';
 import { googleSheetsApi } from './utils/googleSheets';
+import { formatDriveUrl } from './utils/imageUtils';
 
 function App() {
   const [adminView, setAdminView] = useState('dashboard'); // dashboard | orders | products | sales
@@ -44,7 +45,8 @@ function App() {
             const sanitizedProducts = pList.map(p => ({
               ...p,
               id: Number(p.id),
-              price: Number(p.price)
+              price: Number(p.price),
+              image: formatDriveUrl(p.image)
             }));
             setProducts(sanitizedProducts);
           }
