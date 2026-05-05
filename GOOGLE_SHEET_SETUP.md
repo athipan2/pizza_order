@@ -11,12 +11,18 @@
 2. คัดลอกโค้ดด้านล่างนี้ไปวางทั้งหมด (แทนที่ของเดิม):
 
 ```javascript
+// ⚠️ แก้ไขจุดสำคัญ 2 จุดนี้ก่อนนำไปใช้งาน
 const SPREADSHEET_ID = 'ใส่_ID_ของ_Spreadsheet_ที่นี่';
 const FOLDER_ID = 'ใส่_ID_ของ_Folder_ใน_Google_Drive_ที่นี่';
 
 function doGet(e) {
   try {
     const action = e.parameter.action;
+
+    if (!SPREADSHEET_ID || SPREADSHEET_ID.includes('ใส่_ID')) {
+      return createJsonResponse({ status: "error", message: "กรุณาใส่ SPREADSHEET_ID ในโค้ด Apps Script" });
+    }
+
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
     // --- ระบบ Setup อัตโนมัติ ---
@@ -101,7 +107,7 @@ function doPost(e) {
       sheet.appendRow([
         data.id, data.name, data.phone, data.address, data.deliveryMethod,
         data.paymentMethod, JSON.stringify(data.cartItems), data.total,
-        data.status, data.createdAt, slipUrl
+        data.status, data.createdAt, slipUrl, data.location, data.remark
       ]);
       return createJsonResponse({ status: 'success' });
     }
@@ -143,8 +149,8 @@ function setupSheets(ss) {
   // สร้างแผ่น Orders
   let oSheet = ss.getSheetByName('Orders');
   if (!oSheet) oSheet = ss.insertSheet('Orders');
-  oSheet.getRange(1, 1, 1, 11).setValues([['id', 'name', 'phone', 'address', 'deliveryMethod', 'paymentMethod', 'cartItems', 'total', 'status', 'createdAt', 'slipFile']]);
-  oSheet.getRange(1, 1, 1, 11).setFontWeight("bold").setBackground("#f3f3f3");
+  oSheet.getRange(1, 1, 1, 13).setValues([['id', 'name', 'phone', 'address', 'deliveryMethod', 'paymentMethod', 'cartItems', 'total', 'status', 'createdAt', 'slipFile', 'location', 'remark']]);
+  oSheet.getRange(1, 1, 1, 13).setFontWeight("bold").setBackground("#f3f3f3");
 }
 
 function getSheetDataAsJson(sheet, parseCart = false) {
@@ -178,7 +184,7 @@ function uploadToDrive(base64Data, fileName) {
     const folder = DriveApp.getFolderById(FOLDER_ID);
     const file = folder.createFile(blob);
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    return file.getUrl().replace('/view?usp=drivesdk', '/thumbnail?sz=w800');
+    return file.getUrl();
   } catch (e) {
     return base64Data;
   }

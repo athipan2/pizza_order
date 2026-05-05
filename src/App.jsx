@@ -6,6 +6,7 @@ import ProductManager from './pages/ProductManager';
 import SalesHistory from './pages/SalesHistory';
 import { initialMenuItems } from './data/menu';
 import { googleSheetsApi } from './utils/googleSheets';
+import { formatDriveUrl } from './utils/imageUtils';
 
 function App() {
   const [adminView, setAdminView] = useState('dashboard'); // dashboard | orders | products | sales
@@ -14,6 +15,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [error, setError] = useState(null);
   const [updatingOrders, setUpdatingOrders] = useState(new Set()); // ติดตามออเดอร์ที่กำลังบันทึก
 
   // ตรวจสอบ URL path เพื่อกำหนดว่าเป็นหน้าแอดมินหรือลูกค้า
@@ -26,50 +28,78 @@ function App() {
 
     try {
       const [fetchedProducts, fetchedOrders] = await Promise.all([
-        googleSheetsApi.getProducts().catch(err => { console.error("Products API error:", err); return null; }),
-        googleSheetsApi.getOrders().catch(err => { console.error("Orders API error:", err); return null; })
+        googleSheetsApi.getProducts(),
+        googleSheetsApi.getOrders()
       ]);
+
+      let hasError = false;
 
       // จัดการข้อมูลสินค้า
       if (fetchedProducts) {
-        const pList = Array.isArray(fetchedProducts) ? fetchedProducts : (fetchedProducts.data || []);
-        if (Array.isArray(pList) && pList.length > 0) {
-          const sanitizedProducts = pList.map(p => ({
-            ...p,
-            id: Number(p.id),
-            price: Number(p.price)
-          }));
-          setProducts(sanitizedProducts);
+        if (fetchedProducts.status === 'error') {
+          console.error("Products API error:", fetchedProducts.message);
+          hasError = true;
+        } else {
+          const pList = Array.isArray(fetchedProducts) ? fetchedProducts : (fetchedProducts.data || []);
+          if (Array.isArray(pList)) {
+            const sanitizedProducts = pList.map(p => ({
+              ...p,
+              id: Number(p.id),
+              price: Number(p.price),
+              image: formatDriveUrl(p.image)
+            }));
+            setProducts(sanitizedProducts);
+          }
         }
       }
 
       // จัดการข้อมูลออเดอร์
       if (fetchedOrders) {
-        // ตรวจสอบว่ามีข้อมูลออเดอร์จริงๆ หรือไม่ (ไม่ใช่ error object หรือ empty error response)
-        const oList = Array.isArray(fetchedOrders) ? fetchedOrders : (fetchedOrders.data || null);
+        if (fetchedOrders.status === 'error') {
+          console.error("Orders API error:", fetchedOrders.message);
+          hasError = true;
+        } else {
+          const oList = Array.isArray(fetchedOrders) ? fetchedOrders : (fetchedOrders.data || []);
+          if (Array.isArray(oList)) {
+            const sanitizedOrders = oList.map(o => {
+              let sanitizedPhone = o.phone ? o.phone.toString() : '';
+              if (sanitizedPhone.length === 9 && !sanitizedPhone.startsWith('0')) {
+                sanitizedPhone = '0' + sanitizedPhone;
+              }
 
-        if (Array.isArray(oList) && oList.length > 0) {
-          const sanitizedOrders = oList.map(o => {
-            // ตรวจสอบเบอร์โทรศัพท์ (ถ้า 0 นำหน้าหายไปใน Sheets จะเหลือ 9 หลัก)
-            let sanitizedPhone = o.phone ? o.phone.toString() : '';
-            if (sanitizedPhone.length === 9 && !sanitizedPhone.startsWith('0')) {
-              sanitizedPhone = '0' + sanitizedPhone;
-            }
+              // ตรวจสอบว่ามีพิกัดที่ซ่อนอยู่ใน key อื่นหรือไม่ (กรณี header ใน Sheets ไม่ตรง)
+              let location = o.location;
+              if (!location && o[""]) {
+                const coordRegex = /^-?\d+\.\d+,\s?-?\d+\.\d+$/;
+                if (coordRegex.test(o[""])) {
+                  location = o[""];
+                }
+              }
 
-            return {
-              ...o,
-              id: Number(o.id),
-              phone: sanitizedPhone,
-              total: Number(o.total),
-              cartItems: Array.isArray(o.cartItems) ? o.cartItems : (typeof o.cartItems === 'string' ? JSON.parse(o.cartItems) : [])
-            };
-          }).sort((a, b) => b.id - a.id);
-          setOrders(sanitizedOrders);
-          setLastUpdated(new Date());
+              return {
+                ...o,
+                id: Number(o.id),
+                phone: sanitizedPhone,
+                total: Number(o.total),
+                location: location,
+                cartItems: Array.isArray(o.cartItems) ? o.cartItems : (typeof o.cartItems === 'string' ? JSON.parse(o.cartItems) : [])
+              };
+            }).sort((a, b) => b.id - a.id);
+            setOrders(sanitizedOrders);
+            setLastUpdated(new Date());
+          }
         }
       }
+
+      if (hasError) {
+        setError('เกิดข้อผิดพลาดในการเชื่อมต่อ Google Sheets กรุณาตรวจสอบ Apps Script');
+      } else {
+        setError(null);
+      }
+
     } catch (error) {
       console.error('Error fetching data from Google Sheets:', error);
+      setError('ไม่สามารถดึงข้อมูลได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือ Apps Script URL');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -178,6 +208,17 @@ function App() {
 
   return (
     <div className="min-h-screen bg-primary-50">
+      {error && (
+        <div className="bg-red-500 text-white px-4 py-2 text-center text-sm font-medium animate-pulse sticky top-0 z-[60] flex items-center justify-center gap-2">
+          <span>⚠️ {error}</span>
+          <button
+            onClick={() => fetchData()}
+            className="underline hover:no-underline ml-2"
+          >
+            ลองใหม่
+          </button>
+        </div>
+      )}
       {!isAdminPage ? (
         <CustomerPage onAddOrder={handleAddOrder} products={products} orders={orders} />
       ) : (
