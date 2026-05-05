@@ -186,6 +186,11 @@ function AdminDashboard({ orders, products, onNavigate, onRefresh, isRefreshing 
                       <p className="text-sm text-gray-500">
                         {order.cartItems.length} รายการ · ฿{order.total}
                       </p>
+                      {order.remark && (
+                        <p className="text-xs text-orange-600 font-medium truncate max-w-[200px]">
+                          📝 {order.remark}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-4">

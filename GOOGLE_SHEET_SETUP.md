@@ -107,7 +107,7 @@ function doPost(e) {
       sheet.appendRow([
         data.id, data.name, data.phone, data.address, data.deliveryMethod,
         data.paymentMethod, JSON.stringify(data.cartItems), data.total,
-        data.status, data.createdAt, slipUrl, data.location
+        data.status, data.createdAt, slipUrl, data.location, data.remark
       ]);
       return createJsonResponse({ status: 'success' });
     }
@@ -149,8 +149,8 @@ function setupSheets(ss) {
   // สร้างแผ่น Orders
   let oSheet = ss.getSheetByName('Orders');
   if (!oSheet) oSheet = ss.insertSheet('Orders');
-  oSheet.getRange(1, 1, 1, 12).setValues([['id', 'name', 'phone', 'address', 'deliveryMethod', 'paymentMethod', 'cartItems', 'total', 'status', 'createdAt', 'slipFile', 'location']]);
-  oSheet.getRange(1, 1, 1, 12).setFontWeight("bold").setBackground("#f3f3f3");
+  oSheet.getRange(1, 1, 1, 13).setValues([['id', 'name', 'phone', 'address', 'deliveryMethod', 'paymentMethod', 'cartItems', 'total', 'status', 'createdAt', 'slipFile', 'location', 'remark']]);
+  oSheet.getRange(1, 1, 1, 13).setFontWeight("bold").setBackground("#f3f3f3");
 }
 
 function getSheetDataAsJson(sheet, parseCart = false) {

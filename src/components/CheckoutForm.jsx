@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Upload, CreditCard, QrCode, Banknote, ArrowLeft, MapPin, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
+import { Upload, CreditCard, QrCode, Banknote, ArrowLeft, MapPin, AlertCircle, Loader2, CheckCircle, MessageSquare } from 'lucide-react';
 import { PaymentMethod, DeliveryMethod } from '../types';
 
 function CheckoutForm({ cartItems, total, onSubmit, onCancel }) {
@@ -7,6 +7,7 @@ function CheckoutForm({ cartItems, total, onSubmit, onCancel }) {
     name: '',
     phone: '',
     address: '',
+    remark: '',
     deliveryMethod: DeliveryMethod.DELIVERY,
     paymentMethod: PaymentMethod.PROMPTPAY,
     location: null
@@ -129,6 +130,21 @@ function CheckoutForm({ cartItems, total, onSubmit, onCancel }) {
             className="w-full px-4 py-3.5 sm:py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none text-base"
             placeholder="กรอกเบอร์โทรศัพท์ 10 หลัก"
             inputMode="numeric"
+          />
+        </div>
+
+        {/* หมายเหตุ */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
+            <MessageSquare size={16} className="text-gray-400" />
+            หมายเหตุถึงร้านค้า (ถ้ามี)
+          </label>
+          <textarea
+            rows={2}
+            value={formData.remark}
+            onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none text-sm resize-none"
+            placeholder="เช่น ไม่เผ็ดมาก, ตำป่าเอาพริก 3 เม็ด"
           />
         </div>
 

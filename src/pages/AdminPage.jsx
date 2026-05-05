@@ -148,6 +148,12 @@ function AdminPage({ orders, onUpdateStatus, onBack, updatingOrders = new Set() 
                         <div className="space-y-1 text-sm">
                           <p><span className="text-gray-500">ชื่อ:</span> {order.name}</p>
                           <p><span className="text-gray-500">โทร:</span> {order.phone}</p>
+                    {order.remark && (
+                      <p className="bg-orange-50 p-2 rounded-lg border border-orange-100 mt-2">
+                        <span className="text-orange-700 font-bold">📝 หมายเหตุ:</span>{' '}
+                        <span className="text-orange-900">{order.remark}</span>
+                      </p>
+                    )}
                           <p>
                             <span className="text-gray-500">รับสินค้า:</span>{' '}
                             <span className="inline-flex items-center gap-1">
