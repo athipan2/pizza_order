@@ -45,7 +45,7 @@ function App() {
           if (Array.isArray(pList)) {
             const sanitizedProducts = pList.map(p => ({
               ...p,
-              id: Number(p.id),
+              id: p.id.toString(),
               price: Number(p.price),
               image: formatDriveUrl(p.image)
             }));
@@ -79,7 +79,7 @@ function App() {
 
               return {
                 ...o,
-                id: Number(o.id),
+                id: o.id.toString(),
                 phone: sanitizedPhone,
                 total: Number(o.total),
                 location: location,
@@ -135,12 +135,12 @@ function App() {
     const oldOrders = [...orders];
 
     // 2. แสดงสถานะกำลังบันทึก
-    setUpdatingOrders(prev => new Set(prev).add(orderId));
+    setUpdatingOrders(prev => new Set(prev).add(orderId.toString()));
 
     // 3. อัปเดต UI ทันที (Optimistic Update)
     setOrders(prev =>
       prev.map(order =>
-        order.id === orderId ? { ...order, status: newStatus } : order
+        order.id.toString() === orderId.toString() ? { ...order, status: newStatus } : order
       )
     );
 
@@ -157,7 +157,7 @@ function App() {
       // 6. ยกเลิกสถานะกำลังบันทึก
       setUpdatingOrders(prev => {
         const next = new Set(prev);
-        next.delete(orderId);
+        next.delete(orderId.toString());
         return next;
       });
     }
@@ -183,8 +183,9 @@ function App() {
   const handleEditProduct = async (updatedProduct) => {
     const oldProducts = [...products];
     setIsUpdatingProducts(true);
+    const productId = updatedProduct.id.toString();
     setProducts(prev =>
-      prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+      prev.map(p => p.id.toString() === productId ? updatedProduct : p)
     );
     try {
       await googleSheetsApi.updateProduct(updatedProduct);
@@ -201,7 +202,8 @@ function App() {
   const handleDeleteProduct = async (productId) => {
     const oldProducts = [...products];
     setIsUpdatingProducts(true);
-    setProducts(prev => prev.filter(p => p.id !== productId));
+    const idStr = productId.toString();
+    setProducts(prev => prev.filter(p => p.id.toString() !== idStr));
     try {
       await googleSheetsApi.deleteProduct(productId);
     } catch (error) {
