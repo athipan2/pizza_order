@@ -1,4 +1,4 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycbyscWl1x10vYTKW4kqTTnYlNx_dcqgB5Lvcm-CEowgWX1bPVI8GL4PL1qDxB4AiN4Q/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycby8OBQceiLO3dzzWh5IGP3jnSAg8dAH55OgApUsyWNH6bXJCBXhrq5rYGdDyFgh5Npf/exec';
 
 export const googleSheetsApi = {
   async getProducts() {
@@ -17,9 +17,16 @@ export const googleSheetsApi = {
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'addProduct', ...product }),
+        body: JSON.stringify({
+          action: 'addProduct',
+          ...product,
+          id: product.id.toString() // Ensure ID is string
+        }),
       });
-      return await response.json();
+      if (!response.ok) throw new Error('Network response was not ok');
+      const result = await response.json();
+      if (result.status === 'error') throw new Error(result.message);
+      return result;
     } catch (error) {
       console.error('Error adding product:', error);
       throw error;
@@ -31,9 +38,16 @@ export const googleSheetsApi = {
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'updateProduct', ...product }),
+        body: JSON.stringify({
+          action: 'updateProduct',
+          ...product,
+          id: product.id.toString() // Ensure ID is string
+        }),
       });
-      return await response.json();
+      if (!response.ok) throw new Error('Network response was not ok');
+      const result = await response.json();
+      if (result.status === 'error') throw new Error(result.message);
+      return result;
     } catch (error) {
       console.error('Error updating product:', error);
       throw error;
@@ -42,12 +56,19 @@ export const googleSheetsApi = {
 
   async deleteProduct(productId) {
     try {
+      console.log('Deleting product ID:', productId);
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'deleteProduct', id: productId }),
+        body: JSON.stringify({
+          action: 'deleteProduct',
+          id: productId.toString() // Ensure ID is string
+        }),
       });
-      return await response.json();
+      if (!response.ok) throw new Error('Network response was not ok');
+      const result = await response.json();
+      if (result.status === 'error') throw new Error(result.message);
+      return result;
     } catch (error) {
       console.error('Error deleting product:', error);
       throw error;
@@ -59,8 +80,13 @@ export const googleSheetsApi = {
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'addOrder', ...order }),
+        body: JSON.stringify({
+          action: 'addOrder',
+          ...order,
+          id: order.id.toString() // Ensure ID is string
+        }),
       });
+      if (!response.ok) throw new Error('Network response was not ok');
       return await response.json();
     } catch (error) {
       console.error('Error adding order:', error);
@@ -87,7 +113,11 @@ export const googleSheetsApi = {
         headers: {
           'Content-Type': 'text/plain;charset=utf-8',
         },
-        body: JSON.stringify({ action: 'updateOrderStatus', id: orderId, status }),
+        body: JSON.stringify({
+          action: 'updateOrderStatus',
+          id: orderId.toString(), // Ensure ID is string
+          status
+        }),
       });
 
       if (!response.ok) {

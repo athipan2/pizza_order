@@ -17,6 +17,7 @@ function App() {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [error, setError] = useState(null);
   const [updatingOrders, setUpdatingOrders] = useState(new Set()); // ติดตามออเดอร์ที่กำลังบันทึก
+  const [isUpdatingProducts, setIsUpdatingProducts] = useState(false); // สำหรับ Product Manager
 
   // ตรวจสอบ URL path เพื่อกำหนดว่าเป็นหน้าแอดมินหรือลูกค้า
   const isAdminPage = window.location.pathname.startsWith('/admin');
@@ -164,15 +165,24 @@ function App() {
 
   // จัดการสินค้า
   const handleAddProduct = async (product) => {
+    const oldProducts = [...products];
+    setIsUpdatingProducts(true);
     setProducts(prev => [...prev, product]);
     try {
       await googleSheetsApi.addProduct(product);
     } catch (error) {
       console.error('Failed to add product to Google Sheets:', error);
+      alert('ไม่สามารถเพิ่มสินค้าได้: ' + error.message);
+      setProducts(oldProducts);
+    } finally {
+      setIsUpdatingProducts(false);
+      fetchData(false); // รีเฟรชข้อมูลล่าสุด
     }
   };
 
   const handleEditProduct = async (updatedProduct) => {
+    const oldProducts = [...products];
+    setIsUpdatingProducts(true);
     setProducts(prev =>
       prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
     );
@@ -180,15 +190,27 @@ function App() {
       await googleSheetsApi.updateProduct(updatedProduct);
     } catch (error) {
       console.error('Failed to update product to Google Sheets:', error);
+      alert('ไม่สามารถแก้ไขสินค้าได้: ' + error.message);
+      setProducts(oldProducts);
+    } finally {
+      setIsUpdatingProducts(false);
+      fetchData(false);
     }
   };
 
   const handleDeleteProduct = async (productId) => {
+    const oldProducts = [...products];
+    setIsUpdatingProducts(true);
     setProducts(prev => prev.filter(p => p.id !== productId));
     try {
       await googleSheetsApi.deleteProduct(productId);
     } catch (error) {
       console.error('Failed to delete product from Google Sheets:', error);
+      alert('ไม่สามารถลบสินค้าได้: ' + error.message);
+      setProducts(oldProducts);
+    } finally {
+      setIsUpdatingProducts(false);
+      fetchData(false);
     }
   };
 
@@ -247,6 +269,7 @@ function App() {
               onEdit={handleEditProduct}
               onDelete={handleDeleteProduct}
               onBack={() => setAdminView('dashboard')}
+              isUpdating={isUpdatingProducts}
             />
           )}
           {adminView === 'sales' && (
