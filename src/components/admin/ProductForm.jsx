@@ -49,7 +49,7 @@ function ProductForm({ product, onSave, onCancel }) {
     e.preventDefault();
     const productData = {
       ...formData,
-      id: product?.id || Date.now(),
+      id: product?.id ? product.id.toString() : Date.now().toString(),
       price: parseInt(formData.price, 10),
       // ส่งรูปภาพเป็น Base64 หรือ URL ไปยัง Apps Script
       image: previewImage || formData.image
