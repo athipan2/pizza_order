@@ -64,11 +64,11 @@ function doPost(e) {
         data.id,
         data.name,
         data.price,
+        data.priceM || 0,
+        data.priceL || 0,
         data.category,
         data.description,
-        imageUrl,
-        data.priceM || 0,
-        data.priceL || 0
+        imageUrl
       ]);
       SpreadsheetApp.flush();
       return createJsonResponse({ status: 'success' });
@@ -90,11 +90,11 @@ function doPost(e) {
             data.id,
             data.name,
             data.price,
+            data.priceM || 0,
+            data.priceL || 0,
             data.category,
             data.description,
-            imageUrl,
-            data.priceM || 0,
-            data.priceL || 0
+            imageUrl
           ]]);
           found = true;
           break;
@@ -162,7 +162,7 @@ function doPost(e) {
 function setupSheets(ss) {
   let pSheet = ss.getSheetByName('Products');
   if (!pSheet) pSheet = ss.insertSheet('Products');
-  pSheet.getRange(1, 1, 1, 8).setValues([['id', 'name', 'price', 'category', 'description', 'image', 'priceM', 'priceL']]);
+  pSheet.getRange(1, 1, 1, 8).setValues([['id', 'name', 'price', 'priceM', 'priceL', 'category', 'description', 'image']]);
   pSheet.getRange(1, 1, 1, 8).setFontWeight("bold").setBackground("#f3f3f3");
 
   let oSheet = ss.getSheetByName('Orders');

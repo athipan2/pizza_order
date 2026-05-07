@@ -44,14 +44,35 @@ function App() {
         } else {
           const pList = Array.isArray(fetchedProducts) ? fetchedProducts : (fetchedProducts.data || []);
           if (Array.isArray(pList)) {
-            const sanitizedProducts = pList.map(p => ({
-              ...p,
-              id: p.id.toString(),
-              price: Number(p.price),
-              priceM: p.priceM ? Number(p.priceM) : 0,
-              priceL: p.priceL ? Number(p.priceL) : 0,
-              image: formatDriveUrl(p.image)
-            }));
+            const sanitizedProducts = pList.map(p => {
+              // ถ้าลำดับคอลัมน์ผิด ข้อมูลอาจจะสลับกันได้ ต้องพยายามตรวจเช็คและแก้ไข
+              let category = p.category;
+              let description = p.description;
+              let image = p.image;
+              let price = Number(p.price);
+              let priceM = p.priceM ? Number(p.priceM) : 0;
+              let priceL = p.priceL ? Number(p.priceL) : 0;
+
+              // กรณีข้อมูลสลับกัน (เช่น category ไปอยู่ในที่ของ price)
+              if (category === 'pizza' || category === 'sontam' || category === 'drink') {
+                // Category ถูกต้องแล้ว
+              } else if (p.image === 'pizza' || p.image === 'sontam' || p.image === 'drink') {
+                // ข้อมูลสลับตำแหน่ง (เกิดจาก column mismatch ในอดีต)
+                category = p.image;
+                image = p[""]; // Google Sheets มักจะส่งคอลัมน์ที่เกินมาเป็น key ว่าง
+              }
+
+              return {
+                ...p,
+                id: p.id.toString(),
+                price: price,
+                priceM: priceM,
+                priceL: priceL,
+                category: category,
+                description: description,
+                image: formatDriveUrl(image)
+              };
+            });
             setProducts(sanitizedProducts);
           }
         }
