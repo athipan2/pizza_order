@@ -23,10 +23,13 @@ function CustomerPage({ onAddOrder, products, orders }) {
   const addToCart = (item) => {
     const addQty = item.addQuantity || 1;
     setCart(prev => {
-      const existing = prev.find(cartItem => cartItem.id === item.id);
+      // ตรวจสอบทั้ง id และ size เพื่อแยกสินค้าชนิดเดียวกันแต่คนละขนาด
+      const existing = prev.find(cartItem =>
+        cartItem.id === item.id && cartItem.size === item.size
+      );
       if (existing) {
         return prev.map(cartItem =>
-          cartItem.id === item.id
+          (cartItem.id === item.id && cartItem.size === item.size)
             ? { ...cartItem, quantity: cartItem.quantity + addQty }
             : cartItem
         );
@@ -36,10 +39,10 @@ function CustomerPage({ onAddOrder, products, orders }) {
     setShowCart(true);
   };
 
-  const updateQuantity = (itemId, change) => {
+  const updateQuantity = (itemId, change, size = null) => {
     setCart(prev =>
       prev.map(item => {
-        if (item.id === itemId) {
+        if (item.id === itemId && item.size === size) {
           const newQuantity = item.quantity + change;
           return newQuantity > 0 ? { ...item, quantity: newQuantity } : item;
         }
@@ -48,8 +51,8 @@ function CustomerPage({ onAddOrder, products, orders }) {
     );
   };
 
-  const removeFromCart = (itemId) => {
-    setCart(prev => prev.filter(item => item.id !== itemId));
+  const removeFromCart = (itemId, size = null) => {
+    setCart(prev => prev.filter(item => !(item.id === itemId && item.size === size)));
   };
 
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);

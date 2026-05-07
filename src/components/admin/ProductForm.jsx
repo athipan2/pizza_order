@@ -6,6 +6,8 @@ function ProductForm({ product, onSave, onCancel }) {
   const [formData, setFormData] = useState({
     name: '',
     price: '',
+    priceM: '',
+    priceL: '',
     category: 'pizza',
     description: '',
     image: ''
@@ -18,6 +20,8 @@ function ProductForm({ product, onSave, onCancel }) {
       setFormData({
         name: product.name || '',
         price: product.price || '',
+        priceM: product.priceM || '',
+        priceL: product.priceL || '',
         category: product.category || 'pizza',
         description: product.description || '',
         image: product.image || ''
@@ -51,6 +55,8 @@ function ProductForm({ product, onSave, onCancel }) {
       ...formData,
       id: (product?.id || Date.now()).toString(),
       price: parseInt(formData.price, 10),
+      priceM: formData.category === 'pizza' ? parseInt(formData.priceM || 0, 10) : 0,
+      priceL: formData.category === 'pizza' ? parseInt(formData.priceL || 0, 10) : 0,
       // ส่งรูปภาพเป็น Base64 หรือ URL ไปยัง Apps Script
       image: previewImage || formData.image
     };
@@ -173,19 +179,52 @@ function ProductForm({ product, onSave, onCancel }) {
           </div>
 
           {/* ราคา */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              ราคา (บาท) <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              required
-              min="0"
-              value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-              className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none"
-              placeholder="เช่น 299"
-            />
+          <div className={`grid ${formData.category === 'pizza' ? 'grid-cols-3' : 'grid-cols-1'} gap-3`}>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                ราคา {formData.category === 'pizza' && 'Size S'} (บาท) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                required
+                min="0"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none"
+                placeholder="เช่น 299"
+              />
+            </div>
+
+            {formData.category === 'pizza' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    ราคา Size M
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.priceM}
+                    onChange={(e) => setFormData({ ...formData, priceM: e.target.value })}
+                    className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none"
+                    placeholder="เช่น 399"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    ราคา Size L
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.priceL}
+                    onChange={(e) => setFormData({ ...formData, priceL: e.target.value })}
+                    className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none"
+                    placeholder="เช่น 499"
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           {/* รายละเอียด */}

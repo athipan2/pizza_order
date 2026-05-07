@@ -60,7 +60,16 @@ function doPost(e) {
       if (imageUrl && imageUrl.startsWith('data:')) {
         imageUrl = uploadToDrive(imageUrl, "Product_" + data.id);
       }
-      sheet.appendRow([data.id, data.name, data.price, data.category, data.description, imageUrl]);
+      sheet.appendRow([
+        data.id,
+        data.name,
+        data.price,
+        data.priceM || 0,
+        data.priceL || 0,
+        data.category,
+        data.description,
+        imageUrl
+      ]);
       SpreadsheetApp.flush();
       return createJsonResponse({ status: 'success' });
     }
@@ -77,7 +86,16 @@ function doPost(e) {
           if (imageUrl && imageUrl.startsWith('data:')) {
             imageUrl = uploadToDrive(imageUrl, "Product_" + data.id);
           }
-          sheet.getRange(i + 1, 1, 1, 6).setValues([[data.id, data.name, data.price, data.category, data.description, imageUrl]]);
+          sheet.getRange(i + 1, 1, 1, 8).setValues([[
+            data.id,
+            data.name,
+            data.price,
+            data.priceM || 0,
+            data.priceL || 0,
+            data.category,
+            data.description,
+            imageUrl
+          ]]);
           found = true;
           break;
         }
@@ -144,8 +162,8 @@ function doPost(e) {
 function setupSheets(ss) {
   let pSheet = ss.getSheetByName('Products');
   if (!pSheet) pSheet = ss.insertSheet('Products');
-  pSheet.getRange(1, 1, 1, 6).setValues([['id', 'name', 'price', 'category', 'description', 'image']]);
-  pSheet.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#f3f3f3");
+  pSheet.getRange(1, 1, 1, 8).setValues([['id', 'name', 'price', 'priceM', 'priceL', 'category', 'description', 'image']]);
+  pSheet.getRange(1, 1, 1, 8).setFontWeight("bold").setBackground("#f3f3f3");
 
   let oSheet = ss.getSheetByName('Orders');
   if (!oSheet) oSheet = ss.insertSheet('Orders');

@@ -48,6 +48,8 @@ function App() {
               ...p,
               id: p.id.toString(),
               price: Number(p.price),
+              priceM: p.priceM ? Number(p.priceM) : 0,
+              priceL: p.priceL ? Number(p.priceL) : 0,
               image: formatDriveUrl(p.image)
             }));
             setProducts(sanitizedProducts);

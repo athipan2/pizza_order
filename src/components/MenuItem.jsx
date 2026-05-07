@@ -3,10 +3,26 @@ import { Plus, Minus, Image as ImageIcon, ShoppingCart } from 'lucide-react';
 
 function MenuItem({ item, onAdd }) {
   const [quantity, setQuantity] = useState(1);
+  const [selectedSize, setSelectedSize] = useState('S'); // S, M, L
   const isEmoji = item.image && item.image.length <= 4;
+  const isPizza = item.category === 'pizza';
+
+  const getPrice = () => {
+    if (!isPizza) return item.price;
+    if (selectedSize === 'M') return item.priceM || item.price;
+    if (selectedSize === 'L') return item.priceL || item.price;
+    return item.price;
+  };
+
+  const currentPrice = getPrice();
 
   const handleAdd = () => {
-    onAdd({ ...item, addQuantity: quantity });
+    onAdd({
+      ...item,
+      price: currentPrice,
+      size: isPizza ? selectedSize : null,
+      addQuantity: quantity
+    });
     setQuantity(1); // reset กลับเป็น 1 หลังเพิ่ม
   };
 
@@ -48,14 +64,33 @@ function MenuItem({ item, onAdd }) {
           <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{item.name}</h3>
           <p className="text-xs sm:text-sm text-gray-500 line-clamp-2 mt-0.5">{item.description}</p>
           
+          {/* ตัวเลือกขนาด (เฉพาะพิซซ่า) */}
+          {isPizza && (
+            <div className="mt-2 flex items-center gap-1.5">
+              {['S', 'M', 'L'].map((size) => (
+                <button
+                  key={size}
+                  onClick={() => setSelectedSize(size)}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                    selectedSize === size
+                      ? 'bg-primary-500 text-white shadow-sm scale-105'
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  }`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* ราคาและตัวเลือกจำนวน */}
           <div className="mt-2 sm:mt-3">
             <div className="flex items-center justify-between">
               <span className="text-base sm:text-lg font-bold text-primary-600">
-                ฿{item.price}
+                ฿{currentPrice}
                 {quantity > 1 && (
                   <span className="text-sm text-gray-500 font-normal ml-1">
-                    (รวม ฿{item.price * quantity})
+                    (รวม ฿{currentPrice * quantity})
                   </span>
                 )}
               </span>
