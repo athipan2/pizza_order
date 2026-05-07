@@ -56,38 +56,33 @@ function App() {
             let image = p.image || '';
 
             // --- ระบบกู้คืนข้อมูลกรณีลำดับคอลัมน์เยื้อง (Self-healing logic) ---
-            // สาเหตุ: เมื่อมีการแทรก priceM, priceL แต่หัวตารางยังไม่ขยับ
-            // ข้อมูลจะเยื้องดังนี้: [id, name, price, priceM, priceL, category, description, image]
-            // แต่ API จะแมพตาม Header 6 ช่องเดิม ทำให้:
-            // p.category ได้ค่า priceM (ตัวเลข)
-            // p.description ได้ค่า priceL (ตัวเลข) -> นี่คืออาการที่ผู้ใช้แจ้ง
-            // p.image ได้ค่า category (เช่น 'pizza')
-
             const validCategories = ['pizza', 'sontam', 'drink'];
 
-            // ตรวจสอบว่า category จริงๆ ไปอยู่ในช่อง image หรือเปล่า? (เยื้อง 2 ตำแหน่ง)
-            if (validCategories.includes(image)) {
+            // กรณีที่ 1: category ไปอยู่ในช่อง priceM (เยื้องเพราะใช้หัวตาราง 6 คอลัมน์ดั้งเดิม แต่ API ดึงแบบ 8 คอลัมน์)
+            // โครงสร้างที่พบจริง: [id, name, price, category, description, image]
+            // ถูกแมพเป็น: [id, name, price, priceM, priceL, category, description, image]
+            if (validCategories.includes(p.priceM)) {
+              category = p.priceM;
+              description = (p.priceL || '').toString();
+              image = p.category || '';
+              priceM = 0;
+              priceL = 0;
+            }
+            // กรณีที่ 2: category ไปอยู่ในช่อง image (เยื้อง 2 ตำแหน่ง)
+            else if (validCategories.includes(image)) {
               category = image;
               priceM = Number(p.category || 0);
               priceL = Number(p.description || 0);
-
-              // รายละเอียดและรูปภาพจริงจะอยู่ใน key ที่ไม่มีชื่อ (ถ้า API ส่งมาให้)
-              // หรือเราต้องพยายามดึงจาก key อื่นๆ ที่อาจจะหลุดมา
               description = (p[""] || p["COLUMN_G"] || p["column7"] || '').toString();
               image = p["image_url"] || p["COLUMN_H"] || p["column8"] || '';
             }
-            // กรณีเยื้อง 1 ตำแหน่ง
+            // กรณีที่ 3: category ไปอยู่ในช่อง description (เยื้อง 1 ตำแหน่ง)
             else if (validCategories.includes(description)) {
               category = description;
               priceM = Number(p.category || 0);
               description = (p.image || '').toString();
               image = p[""] || '';
             }
-
-            // ตรวจสอบอีกครั้งถ้า category ยังไม่ใช่ที่ต้องการ (เช่น เป็นตัวเลข)
-            if (!validCategories.includes(category) && typeof category === 'number') {
-              // พยายามหา category จาก field อื่น
-              }
 
               return {
                 ...p,
