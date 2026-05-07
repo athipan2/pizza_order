@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Plus, Minus, Image as ImageIcon, ShoppingCart } from 'lucide-react';
+import { Plus, Minus, Image as ImageIcon, ShoppingCart, Maximize2 } from 'lucide-react';
+import ImageModal from './ImageModal';
 
 function MenuItem({ item, onAdd }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('S'); // S, M, L
   const isEmoji = item.image && item.image.length <= 4;
@@ -37,17 +39,25 @@ function MenuItem({ item, onAdd }) {
   return (
     <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-primary-100 active:shadow-md transition-shadow">
       <div className="flex items-start gap-3">
-        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary-50 rounded-xl p-1 flex-shrink-0 overflow-hidden flex items-center justify-center">
+        <div
+          className="w-16 h-16 sm:w-20 sm:h-20 bg-primary-50 rounded-xl p-1 flex-shrink-0 overflow-hidden flex items-center justify-center relative group cursor-pointer"
+          onClick={() => item.image && !isEmoji && setIsModalOpen(true)}
+        >
           {item.image && !isEmoji ? (
-            <img
-              src={item.image}
-              alt={item.name}
-              className="w-full h-full object-cover rounded-lg"
-              onError={(e) => {
-                e.target.style.display = 'none';
-                e.target.parentElement.querySelector('.fallback-icon').style.display = 'flex';
-              }}
-            />
+            <>
+              <img
+                src={item.image}
+                alt={item.name}
+                className="w-full h-full object-cover rounded-lg"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.parentElement.querySelector('.fallback-icon').style.display = 'flex';
+                }}
+              />
+              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Maximize2 size={20} className="text-white" />
+              </div>
+            </>
           ) : null}
           <div
             className="fallback-icon w-full h-full flex items-center justify-center"
@@ -134,6 +144,14 @@ function MenuItem({ item, onAdd }) {
           </div>
         </div>
       </div>
+
+      {/* Image Zoom Modal */}
+      <ImageModal
+        isOpen={isModalOpen}
+        image={item.image}
+        title={item.name}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }

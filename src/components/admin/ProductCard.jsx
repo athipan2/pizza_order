@@ -1,6 +1,9 @@
-import { Edit2, Trash2, Image as ImageIcon } from 'lucide-react';
+import { useState } from 'react';
+import { Edit2, Trash2, Image as ImageIcon, Maximize2 } from 'lucide-react';
+import ImageModal from '../ImageModal';
 
 function ProductCard({ product, onEdit, onDelete }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const handleDelete = () => {
     if (window.confirm(`ต้องการลบ "${product.name}" ใช่หรือไม่?`)) {
       onDelete(product.id);
@@ -10,17 +13,25 @@ function ProductCard({ product, onEdit, onDelete }) {
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
       {/* รูปภาพ */}
-      <div className="relative h-40 bg-gray-100">
+      <div
+        className="relative h-40 bg-gray-100 group cursor-pointer overflow-hidden"
+        onClick={() => product.image && setIsModalOpen(true)}
+      >
         {product.image ? (
-          <img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              e.target.style.display = 'none';
-              e.target.nextSibling.style.display = 'flex';
-            }}
-          />
+          <>
+            <img
+              src={product.image}
+              alt={product.name}
+              className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Maximize2 size={24} className="text-white" />
+            </div>
+          </>
         ) : null}
         <div
           className="absolute inset-0 flex items-center justify-center bg-gray-100"
@@ -73,6 +84,14 @@ function ProductCard({ product, onEdit, onDelete }) {
           </div>
         </div>
       </div>
+
+      {/* Image Zoom Modal */}
+      <ImageModal
+        isOpen={isModalOpen}
+        image={product.image}
+        title={product.name}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }
