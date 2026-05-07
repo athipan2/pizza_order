@@ -44,7 +44,7 @@ function App() {
           if (Array.isArray(pList)) {
             const sanitizedProducts = pList.map(p => ({
               ...p,
-              id: Number(p.id),
+              id: p.id.toString(),
               price: Number(p.price),
               image: formatDriveUrl(p.image)
             }));
@@ -164,31 +164,43 @@ function App() {
 
   // จัดการสินค้า
   const handleAddProduct = async (product) => {
+    const oldProducts = [...products];
     setProducts(prev => [...prev, product]);
     try {
-      await googleSheetsApi.addProduct(product);
+      const result = await googleSheetsApi.addProduct(product);
+      if (result.status === 'error') throw new Error(result.message);
     } catch (error) {
       console.error('Failed to add product to Google Sheets:', error);
+      alert(`⚠️ ไม่สามารถเพิ่มสินค้าได้: ${error.message}`);
+      setProducts(oldProducts);
     }
   };
 
   const handleEditProduct = async (updatedProduct) => {
+    const oldProducts = [...products];
     setProducts(prev =>
-      prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+      prev.map(p => p.id.toString() === updatedProduct.id.toString() ? updatedProduct : p)
     );
     try {
-      await googleSheetsApi.updateProduct(updatedProduct);
+      const result = await googleSheetsApi.updateProduct(updatedProduct);
+      if (result.status === 'error') throw new Error(result.message);
     } catch (error) {
       console.error('Failed to update product to Google Sheets:', error);
+      alert(`⚠️ ไม่สามารถแก้ไขสินค้าได้: ${error.message}`);
+      setProducts(oldProducts);
     }
   };
 
   const handleDeleteProduct = async (productId) => {
-    setProducts(prev => prev.filter(p => p.id !== productId));
+    const oldProducts = [...products];
+    setProducts(prev => prev.filter(p => p.id.toString() !== productId.toString()));
     try {
-      await googleSheetsApi.deleteProduct(productId);
+      const result = await googleSheetsApi.deleteProduct(productId);
+      if (result.status === 'error') throw new Error(result.message);
     } catch (error) {
       console.error('Failed to delete product from Google Sheets:', error);
+      alert(`⚠️ ไม่สามารถลบสินค้าได้: ${error.message}`);
+      setProducts(oldProducts);
     }
   };
 

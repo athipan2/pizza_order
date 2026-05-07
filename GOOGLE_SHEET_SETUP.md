@@ -72,30 +72,34 @@ function doPost(e) {
 
     if (action === 'updateProduct') {
       const sheet = ss.getSheetByName('Products');
-      const dataRange = sheet.getDataRange().getValues();
+      const dataRange = sheet.getDataRange().getDisplayValues(); // ใช้ getDisplayValues เพื่อให้อ่านค่า ID เป็น string เสมอ
+      let found = false;
       for (let i = 1; i < dataRange.length; i++) {
-        if (dataRange[i][0] == data.id) {
+        if (dataRange[i][0].toString() === data.id.toString()) {
           let imageUrl = data.image;
           if (imageUrl && imageUrl.startsWith('data:')) {
             imageUrl = uploadToDrive(imageUrl, "Product_" + data.id);
           }
-          sheet.getRange(i + 1, 1, 1, 6).setValues([[data.id, data.name, data.price, data.category, data.description, imageUrl]]);
+          sheet.getRange(i + 1, 1, 1, 6).setValues([[data.id.toString(), data.name, data.price, data.category, data.description, imageUrl]]);
+          found = true;
           break;
         }
       }
-      return createJsonResponse({ status: 'success' });
+      return found ? createJsonResponse({ status: 'success' }) : createJsonResponse({ status: 'error', message: 'ไม่พบสินค้า ID: ' + data.id });
     }
 
     if (action === 'deleteProduct') {
       const sheet = ss.getSheetByName('Products');
-      const dataRange = sheet.getDataRange().getValues();
+      const dataRange = sheet.getDataRange().getDisplayValues();
+      let found = false;
       for (let i = 1; i < dataRange.length; i++) {
-        if (dataRange[i][0] == data.id) {
+        if (dataRange[i][0].toString() === data.id.toString()) {
           sheet.deleteRow(i + 1);
+          found = true;
           break;
         }
       }
-      return createJsonResponse({ status: 'success' });
+      return found ? createJsonResponse({ status: 'success' }) : createJsonResponse({ status: 'error', message: 'ไม่พบสินค้า ID: ' + data.id });
     }
 
     if (action === 'addOrder') {
