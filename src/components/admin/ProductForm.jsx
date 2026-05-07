@@ -131,7 +131,7 @@ function ProductForm({ product, onSave, onCancel }) {
 
               {/* URL Input */}
               <input
-                type="url"
+                type="text"
                 placeholder="หรือใส่ URL รูปภาพ"
                 value={formData.image?.startsWith('data:') ? '' : formData.image}
                 onChange={(e) => handleImageUrlChange(e.target.value)}
