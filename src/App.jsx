@@ -16,7 +16,9 @@ function App() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const [updatingOrders, setUpdatingOrders] = useState(new Set()); // ติดตามออเดอร์ที่กำลังบันทึก
+  const [isUpdatingProducts, setIsUpdatingProducts] = useState(false); // สำหรับ Product Manager
 
   // ตรวจสอบ URL path เพื่อกำหนดว่าเป็นหน้าแอดมินหรือลูกค้า
   const isAdminPage = window.location.pathname.startsWith('/admin');
@@ -44,7 +46,7 @@ function App() {
           if (Array.isArray(pList)) {
             const sanitizedProducts = pList.map(p => ({
               ...p,
-              id: Number(p.id),
+              id: p.id.toString(),
               price: Number(p.price),
               image: formatDriveUrl(p.image)
             }));
@@ -78,7 +80,7 @@ function App() {
 
               return {
                 ...o,
-                id: Number(o.id),
+                id: o.id.toString(),
                 phone: sanitizedPhone,
                 total: Number(o.total),
                 location: location,
@@ -134,12 +136,12 @@ function App() {
     const oldOrders = [...orders];
 
     // 2. แสดงสถานะกำลังบันทึก
-    setUpdatingOrders(prev => new Set(prev).add(orderId));
+    setUpdatingOrders(prev => new Set(prev).add(orderId.toString()));
 
     // 3. อัปเดต UI ทันที (Optimistic Update)
     setOrders(prev =>
       prev.map(order =>
-        order.id === orderId ? { ...order, status: newStatus } : order
+        order.id.toString() === orderId.toString() ? { ...order, status: newStatus } : order
       )
     );
 
@@ -156,39 +158,70 @@ function App() {
       // 6. ยกเลิกสถานะกำลังบันทึก
       setUpdatingOrders(prev => {
         const next = new Set(prev);
-        next.delete(orderId);
+        next.delete(orderId.toString());
         return next;
       });
     }
   };
 
   // จัดการสินค้า
+  const showSuccess = (message) => {
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
+
   const handleAddProduct = async (product) => {
+    const oldProducts = [...products];
+    setIsUpdatingProducts(true);
     setProducts(prev => [...prev, product]);
     try {
       await googleSheetsApi.addProduct(product);
+      showSuccess('เพิ่มสินค้าสำเร็จแล้ว');
     } catch (error) {
       console.error('Failed to add product to Google Sheets:', error);
+      alert('ไม่สามารถเพิ่มสินค้าได้: ' + error.message);
+      setProducts(oldProducts);
+    } finally {
+      setIsUpdatingProducts(false);
+      fetchData(false); // รีเฟรชข้อมูลล่าสุด
     }
   };
 
   const handleEditProduct = async (updatedProduct) => {
+    const oldProducts = [...products];
+    setIsUpdatingProducts(true);
+    const productId = updatedProduct.id.toString();
     setProducts(prev =>
-      prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+      prev.map(p => p.id.toString() === productId ? updatedProduct : p)
     );
     try {
       await googleSheetsApi.updateProduct(updatedProduct);
+      showSuccess('แก้ไขสินค้าสำเร็จแล้ว');
     } catch (error) {
       console.error('Failed to update product to Google Sheets:', error);
+      alert('ไม่สามารถแก้ไขสินค้าได้: ' + error.message);
+      setProducts(oldProducts);
+    } finally {
+      setIsUpdatingProducts(false);
+      fetchData(false);
     }
   };
 
   const handleDeleteProduct = async (productId) => {
-    setProducts(prev => prev.filter(p => p.id !== productId));
+    const oldProducts = [...products];
+    setIsUpdatingProducts(true);
+    const idStr = productId.toString();
+    setProducts(prev => prev.filter(p => p.id.toString() !== idStr));
     try {
       await googleSheetsApi.deleteProduct(productId);
+      showSuccess('ลบสินค้าสำเร็จแล้ว');
     } catch (error) {
       console.error('Failed to delete product from Google Sheets:', error);
+      alert('ไม่สามารถลบสินค้าได้: ' + error.message);
+      setProducts(oldProducts);
+    } finally {
+      setIsUpdatingProducts(false);
+      fetchData(false);
     }
   };
 
@@ -219,6 +252,11 @@ function App() {
           </button>
         </div>
       )}
+      {successMessage && (
+        <div className="bg-green-500 text-white px-4 py-2 text-center text-sm font-medium sticky top-0 z-[60] shadow-lg animate-in slide-in-from-top duration-300">
+          ✅ {successMessage}
+        </div>
+      )}
       {!isAdminPage ? (
         <CustomerPage onAddOrder={handleAddOrder} products={products} orders={orders} />
       ) : (
@@ -247,6 +285,7 @@ function App() {
               onEdit={handleEditProduct}
               onDelete={handleDeleteProduct}
               onBack={() => setAdminView('dashboard')}
+              isUpdating={isUpdatingProducts}
             />
           )}
           {adminView === 'sales' && (

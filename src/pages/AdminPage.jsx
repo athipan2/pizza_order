@@ -113,7 +113,7 @@ function AdminPage({ orders, onUpdateStatus, onBack, updatingOrders = new Set() 
                             </p>
                           </div>
                           <div className="flex items-center gap-2">
-                            {updatingOrders.has(order.id) && (
+                            {updatingOrders.has(order.id.toString()) && (
                               <div className="flex items-center gap-1 text-xs text-primary-600 font-medium animate-pulse">
                                 <RefreshCw size={12} className="animate-spin" />
                                 กำลังบันทึก...
@@ -122,7 +122,7 @@ function AdminPage({ orders, onUpdateStatus, onBack, updatingOrders = new Set() 
                             <div className="relative">
                               <select
                                 value={order.status}
-                                disabled={updatingOrders.has(order.id)}
+                                disabled={updatingOrders.has(order.id.toString())}
                                 onChange={(e) => onUpdateStatus(order.id, e.target.value)}
                                 className={`appearance-none px-3 py-1.5 rounded-lg font-medium text-sm pr-8 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                                   statusOptions.find(s => s.value === order.status)?.color || 'bg-gray-100 text-gray-700'

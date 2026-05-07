@@ -1,6 +1,6 @@
-# 📊 การตั้งค่า Google Sheets API สำหรับร้านอาหาร (เวอร์ชันอัปเกรด)
+# 📊 การตั้งค่า Google Sheets API สำหรับร้านอาหาร (เวอร์ชันอัปเกรด - ลบสินค้าได้แน่นอน)
 
-คู่มือนี้จะช่วยคุณตั้งค่า Google Sheets และ Google Drive ให้ทำงานร่วมกับแอปได้โดยอัตโนมัติ
+คู่มือนี้จะช่วยคุณตั้งค่า Google Sheets และ Google Drive ให้ทำงานร่วมกับแอปได้โดยอัตโนมัติ พร้อมระบบจัดการ ID ที่แม่นยำ
 
 ## 1. เตรียม Google Sheets & Drive
 1. สร้าง Google Sheets ใหม่
@@ -25,7 +25,6 @@ function doGet(e) {
 
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
-    // --- ระบบ Setup อัตโนมัติ ---
     if (action === 'setup') {
       setupSheets(ss);
       return createJsonResponse({ status: "success", message: "สร้างแผ่นงาน Products และ Orders เรียบร้อยแล้ว!" });
@@ -33,13 +32,13 @@ function doGet(e) {
 
     if (action === 'getProducts') {
       const sheet = ss.getSheetByName('Products');
-      if (!sheet) return createJsonResponse({ status: "error", message: "ไม่พบแผ่นงาน Products กรุณารัน setup ก่อน" });
+      if (!sheet) return createJsonResponse({ status: "error", message: "ไม่พบแผ่นงาน Products" });
       return createJsonResponse(getSheetDataAsJson(sheet));
     }
 
     if (action === 'getOrders') {
       const sheet = ss.getSheetByName('Orders');
-      if (!sheet) return createJsonResponse({ status: "error", message: "ไม่พบแผ่นงาน Orders กรุณารัน setup ก่อน" });
+      if (!sheet) return createJsonResponse({ status: "error", message: "ไม่พบแผ่นงาน Orders" });
       return createJsonResponse(getSheetDataAsJson(sheet, true));
     }
 
@@ -55,11 +54,6 @@ function doPost(e) {
     const action = data.action;
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
-    if (action === 'setup') {
-      setupSheets(ss);
-      return createJsonResponse({ status: "success", message: "Setup complete" });
-    }
-
     if (action === 'addProduct') {
       const sheet = ss.getSheetByName('Products');
       let imageUrl = data.image;
@@ -67,35 +61,46 @@ function doPost(e) {
         imageUrl = uploadToDrive(imageUrl, "Product_" + data.id);
       }
       sheet.appendRow([data.id, data.name, data.price, data.category, data.description, imageUrl]);
+      SpreadsheetApp.flush();
       return createJsonResponse({ status: 'success' });
     }
 
     if (action === 'updateProduct') {
       const sheet = ss.getSheetByName('Products');
-      const dataRange = sheet.getDataRange().getValues();
+      const dataRange = sheet.getDataRange().getDisplayValues(); // ใช้ getDisplayValues เพื่อเลี่ยงปัญหาการปัดเศษตัวเลข
+      const targetId = data.id.toString().replace(/,/g, ''); // ลบคอมม่าถ้ามี
+      let found = false;
       for (let i = 1; i < dataRange.length; i++) {
-        if (dataRange[i][0] == data.id) {
+        const currentId = dataRange[i][0].toString().replace(/,/g, '');
+        if (currentId === targetId) {
           let imageUrl = data.image;
           if (imageUrl && imageUrl.startsWith('data:')) {
             imageUrl = uploadToDrive(imageUrl, "Product_" + data.id);
           }
           sheet.getRange(i + 1, 1, 1, 6).setValues([[data.id, data.name, data.price, data.category, data.description, imageUrl]]);
+          found = true;
           break;
         }
       }
-      return createJsonResponse({ status: 'success' });
+      SpreadsheetApp.flush();
+      return createJsonResponse({ status: found ? 'success' : 'error', message: found ? '' : 'Product not found' });
     }
 
     if (action === 'deleteProduct') {
       const sheet = ss.getSheetByName('Products');
-      const dataRange = sheet.getDataRange().getValues();
+      const dataRange = sheet.getDataRange().getDisplayValues();
+      const targetId = data.id.toString().replace(/,/g, '');
+      let found = false;
       for (let i = 1; i < dataRange.length; i++) {
-        if (dataRange[i][0] == data.id) {
+        const currentId = dataRange[i][0].toString().replace(/,/g, '');
+        if (currentId === targetId) {
           sheet.deleteRow(i + 1);
+          found = true;
           break;
         }
       }
-      return createJsonResponse({ status: 'success' });
+      SpreadsheetApp.flush();
+      return createJsonResponse({ status: found ? 'success' : 'error', message: found ? '' : 'Product not found' });
     }
 
     if (action === 'addOrder') {
@@ -109,28 +114,25 @@ function doPost(e) {
         data.paymentMethod, JSON.stringify(data.cartItems), data.total,
         data.status, data.createdAt, slipUrl, data.location, data.remark
       ]);
+      SpreadsheetApp.flush();
       return createJsonResponse({ status: 'success' });
     }
 
     if (action === 'updateOrderStatus') {
       const sheet = ss.getSheetByName('Orders');
-      const dataRange = sheet.getDataRange().getValues();
+      const dataRange = sheet.getDataRange().getDisplayValues();
+      const targetId = data.id.toString().replace(/,/g, '');
       let found = false;
       for (let i = 1; i < dataRange.length; i++) {
-        // ใช้ toString() เพื่อป้องกันปัญหาการเปรียบเทียบตัวเลขที่มีรูปแบบต่างกัน
-        if (dataRange[i][0].toString() === data.id.toString()) {
+        const currentId = dataRange[i][0].toString().replace(/,/g, '');
+        if (currentId === targetId) {
           sheet.getRange(i + 1, 9).setValue(data.status);
           found = true;
           break;
         }
       }
-
-      if (found) {
-        SpreadsheetApp.flush(); // บังคับให้บันทึกข้อมูลลง Sheet ทันที
-        return createJsonResponse({ status: 'success' });
-      } else {
-        return createJsonResponse({ status: 'error', message: 'ไม่พบออเดอร์ ID: ' + data.id });
-      }
+      SpreadsheetApp.flush();
+      return createJsonResponse({ status: found ? 'success' : 'error', message: found ? '' : 'Order not found' });
     }
 
     return createJsonResponse({ status: "error", message: "Unknown POST action: " + action });
@@ -140,13 +142,11 @@ function doPost(e) {
 }
 
 function setupSheets(ss) {
-  // สร้างแผ่น Products
   let pSheet = ss.getSheetByName('Products');
   if (!pSheet) pSheet = ss.insertSheet('Products');
   pSheet.getRange(1, 1, 1, 6).setValues([['id', 'name', 'price', 'category', 'description', 'image']]);
   pSheet.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#f3f3f3");
 
-  // สร้างแผ่น Orders
   let oSheet = ss.getSheetByName('Orders');
   if (!oSheet) oSheet = ss.insertSheet('Orders');
   oSheet.getRange(1, 1, 1, 13).setValues([['id', 'name', 'phone', 'address', 'deliveryMethod', 'paymentMethod', 'cartItems', 'total', 'status', 'createdAt', 'slipFile', 'location', 'remark']]);
@@ -191,10 +191,8 @@ function uploadToDrive(base64Data, fileName) {
 }
 ```
 
-3. กดปุ่ม **Deploy -> New Deployment** (เลือก Web App, Execute as Me, Access Anyone)
-4. เมื่อได้ URL มาแล้ว ให้คุณเปิด URL นั้นในเบราว์เซอร์โดยเติม `?action=setup` ต่อท้าย เช่น:
-   `https://script.google.com/.../exec?action=setup`
-5. **เพียงเท่านี้ สคริปต์จะสร้างแผ่นงานและตั้งชื่อให้คุณโดยอัตโนมัติครับ!**
+3. กดปุ่ม **Deploy -> New Deployment** (เลือก Web App, Execute as Me, Access **Anyone**)
+4. เมื่อได้ URL มาแล้ว ให้คุณนำมาใส่ในไฟล์ `src/utils/googleSheets.js`
 
 ---
-*หมายเหตุ: อย่าลืมแก้ SPREADSHEET_ID และ FOLDER_ID ในโค้ดก่อน Deploy ครับ*
+*หมายเหตุ: โค้ดเวอร์ชันนี้ใช้ `getDisplayValues()` เพื่อป้องกันปัญหาที่ Google Sheets ปัดเศษตัวเลข ID ขนาดใหญ่ (เช่น 1778036693481) ทำให้เราสามารถลบสินค้าได้ถูกต้องแม่นยำครับ*

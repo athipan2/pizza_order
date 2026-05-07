@@ -4,7 +4,7 @@ import { categories } from '../data/menu';
 import ProductCard from '../components/admin/ProductCard';
 import ProductForm from '../components/admin/ProductForm';
 
-function ProductManager({ products, onAdd, onEdit, onDelete, onBack }) {
+function ProductManager({ products, onAdd, onEdit, onDelete, onBack, isUpdating }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showForm, setShowForm] = useState(false);
@@ -60,13 +60,21 @@ function ProductManager({ products, onAdd, onEdit, onDelete, onBack }) {
                 <p className="text-sm text-primary-200">เพิ่ม แก้ไข ลบ เมนูอาหาร</p>
               </div>
             </div>
-            <button
-              onClick={handleAddNew}
-              className="flex items-center gap-2 px-4 py-2 bg-primary-500 rounded-xl hover:bg-primary-400 transition-colors font-medium"
-            >
-              <Plus size={20} />
-              <span className="hidden sm:inline">เพิ่มสินค้า</span>
-            </button>
+            <div className="flex items-center gap-2">
+              {isUpdating && (
+                <div className="flex items-center gap-2 bg-primary-600/50 px-3 py-1.5 rounded-lg border border-primary-400/30">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span className="text-xs font-medium text-white/90">กำลังบันทึก...</span>
+                </div>
+              )}
+              <button
+                onClick={handleAddNew}
+                className="flex items-center gap-2 px-4 py-2 bg-primary-500 rounded-xl hover:bg-primary-400 transition-colors font-medium"
+              >
+                <Plus size={20} />
+                <span className="hidden sm:inline">เพิ่มสินค้า</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
