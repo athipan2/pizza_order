@@ -66,18 +66,23 @@ function MenuItem({ item, onAdd }) {
           
           {/* ตัวเลือกขนาด (เฉพาะพิซซ่า) */}
           {isPizza && (
-            <div className="mt-2 flex items-center gap-1.5">
-              {['S', 'M', 'L'].map((size) => (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              {[
+                { id: 'S', label: 'S', price: item.price },
+                { id: 'M', label: 'M', price: item.priceM },
+                { id: 'L', label: 'L', price: item.priceL }
+              ].map((size) => (
                 <button
-                  key={size}
-                  onClick={() => setSelectedSize(size)}
-                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
-                    selectedSize === size
-                      ? 'bg-primary-500 text-white shadow-sm scale-105'
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  key={size.id}
+                  onClick={() => setSelectedSize(size.id)}
+                  className={`px-2 py-1 text-[10px] sm:text-xs font-bold rounded-lg transition-all border ${
+                    selectedSize === size.id
+                      ? 'bg-primary-500 text-white border-primary-500 shadow-sm scale-105'
+                      : 'bg-white text-gray-500 border-gray-200 hover:border-primary-300'
                   }`}
                 >
-                  {size}
+                  {size.label}
+                  {size.price > 0 && <span className="ml-1 opacity-80">฿{size.price}</span>}
                 </button>
               ))}
             </div>
