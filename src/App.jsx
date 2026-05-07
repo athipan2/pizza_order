@@ -16,6 +16,7 @@ function App() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const [updatingOrders, setUpdatingOrders] = useState(new Set()); // ติดตามออเดอร์ที่กำลังบันทึก
   const [isUpdatingProducts, setIsUpdatingProducts] = useState(false); // สำหรับ Product Manager
 
@@ -164,12 +165,18 @@ function App() {
   };
 
   // จัดการสินค้า
+  const showSuccess = (message) => {
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
+
   const handleAddProduct = async (product) => {
     const oldProducts = [...products];
     setIsUpdatingProducts(true);
     setProducts(prev => [...prev, product]);
     try {
       await googleSheetsApi.addProduct(product);
+      showSuccess('เพิ่มสินค้าสำเร็จแล้ว');
     } catch (error) {
       console.error('Failed to add product to Google Sheets:', error);
       alert('ไม่สามารถเพิ่มสินค้าได้: ' + error.message);
@@ -189,6 +196,7 @@ function App() {
     );
     try {
       await googleSheetsApi.updateProduct(updatedProduct);
+      showSuccess('แก้ไขสินค้าสำเร็จแล้ว');
     } catch (error) {
       console.error('Failed to update product to Google Sheets:', error);
       alert('ไม่สามารถแก้ไขสินค้าได้: ' + error.message);
@@ -206,6 +214,7 @@ function App() {
     setProducts(prev => prev.filter(p => p.id.toString() !== idStr));
     try {
       await googleSheetsApi.deleteProduct(productId);
+      showSuccess('ลบสินค้าสำเร็จแล้ว');
     } catch (error) {
       console.error('Failed to delete product from Google Sheets:', error);
       alert('ไม่สามารถลบสินค้าได้: ' + error.message);
@@ -241,6 +250,11 @@ function App() {
           >
             ลองใหม่
           </button>
+        </div>
+      )}
+      {successMessage && (
+        <div className="bg-green-500 text-white px-4 py-2 text-center text-sm font-medium sticky top-0 z-[60] shadow-lg animate-in slide-in-from-top duration-300">
+          ✅ {successMessage}
         </div>
       )}
       {!isAdminPage ? (

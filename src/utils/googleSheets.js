@@ -86,7 +86,9 @@ export const googleSheetsApi = {
         }),
       });
       if (!response.ok) throw new Error('Network response was not ok');
-      return await response.json();
+      const result = await response.json();
+      if (result.status === 'error') throw new Error(result.message);
+      return result;
     } catch (error) {
       console.error('Error adding order:', error);
       throw error;
