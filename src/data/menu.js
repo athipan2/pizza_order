@@ -3,6 +3,8 @@ export const initialMenuItems = [
     id: "1",
     name: "พิซซ่าฮาวายเอี้ยน",
     price: 299,
+    priceM: 399,
+    priceL: 499,
     category: "pizza",
     description: "แฮม สับปะรด ชีส mozzarella",
     image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400"
@@ -11,6 +13,8 @@ export const initialMenuItems = [
     id: "2",
     name: "พิซซ่าซีฟู้ด",
     price: 349,
+    priceM: 449,
+    priceL: 549,
     category: "pizza",
     description: "กุ้ง ปู ปลาหมึก ชีส mozzarella",
     image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400"
@@ -19,6 +23,8 @@ export const initialMenuItems = [
     id: "3",
     name: "พิซซ่าหมูพีเปอร์โรนี",
     price: 279,
+    priceM: 379,
+    priceL: 479,
     category: "pizza",
     description: "พีเปอร์โรนี ชีส mozzarella",
     image: "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400"

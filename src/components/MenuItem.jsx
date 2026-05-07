@@ -1,12 +1,30 @@
 import { useState } from 'react';
-import { Plus, Minus, Image as ImageIcon, ShoppingCart } from 'lucide-react';
+import { Plus, Minus, Image as ImageIcon, ShoppingCart, Maximize2 } from 'lucide-react';
+import ImageModal from './ImageModal';
 
 function MenuItem({ item, onAdd }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [selectedSize, setSelectedSize] = useState('S'); // S, M, L
   const isEmoji = item.image && item.image.length <= 4;
+  const isPizza = item.category === 'pizza';
+
+  const getPrice = () => {
+    if (!isPizza) return item.price;
+    if (selectedSize === 'M') return item.priceM || item.price;
+    if (selectedSize === 'L') return item.priceL || item.price;
+    return item.price;
+  };
+
+  const currentPrice = getPrice();
 
   const handleAdd = () => {
-    onAdd({ ...item, addQuantity: quantity });
+    onAdd({
+      ...item,
+      price: currentPrice,
+      size: isPizza ? selectedSize : null,
+      addQuantity: quantity
+    });
     setQuantity(1); // reset กลับเป็น 1 หลังเพิ่ม
   };
 
@@ -21,17 +39,25 @@ function MenuItem({ item, onAdd }) {
   return (
     <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-primary-100 active:shadow-md transition-shadow">
       <div className="flex items-start gap-3">
-        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary-50 rounded-xl p-1 flex-shrink-0 overflow-hidden flex items-center justify-center">
+        <div
+          className="w-16 h-16 sm:w-20 sm:h-20 bg-primary-50 rounded-xl p-1 flex-shrink-0 overflow-hidden flex items-center justify-center relative group cursor-pointer"
+          onClick={() => item.image && !isEmoji && setIsModalOpen(true)}
+        >
           {item.image && !isEmoji ? (
-            <img
-              src={item.image}
-              alt={item.name}
-              className="w-full h-full object-cover rounded-lg"
-              onError={(e) => {
-                e.target.style.display = 'none';
-                e.target.parentElement.querySelector('.fallback-icon').style.display = 'flex';
-              }}
-            />
+            <>
+              <img
+                src={item.image}
+                alt={item.name}
+                className="w-full h-full object-cover rounded-lg"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.parentElement.querySelector('.fallback-icon').style.display = 'flex';
+                }}
+              />
+              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Maximize2 size={20} className="text-white" />
+              </div>
+            </>
           ) : null}
           <div
             className="fallback-icon w-full h-full flex items-center justify-center"
@@ -48,14 +74,38 @@ function MenuItem({ item, onAdd }) {
           <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{item.name}</h3>
           <p className="text-xs sm:text-sm text-gray-500 line-clamp-2 mt-0.5">{item.description}</p>
           
+          {/* ตัวเลือกขนาด (เฉพาะพิซซ่า) */}
+          {isPizza && (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              {[
+                { id: 'S', label: 'S', price: item.price },
+                { id: 'M', label: 'M', price: item.priceM },
+                { id: 'L', label: 'L', price: item.priceL }
+              ].map((size) => (
+                <button
+                  key={size.id}
+                  onClick={() => setSelectedSize(size.id)}
+                  className={`px-2 py-1 text-[10px] sm:text-xs font-bold rounded-lg transition-all border ${
+                    selectedSize === size.id
+                      ? 'bg-primary-500 text-white border-primary-500 shadow-sm scale-105'
+                      : 'bg-white text-gray-500 border-gray-200 hover:border-primary-300'
+                  }`}
+                >
+                  {size.label}
+                  {size.price > 0 && <span className="ml-1 opacity-80">฿{size.price}</span>}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* ราคาและตัวเลือกจำนวน */}
           <div className="mt-2 sm:mt-3">
             <div className="flex items-center justify-between">
               <span className="text-base sm:text-lg font-bold text-primary-600">
-                ฿{item.price}
+                ฿{currentPrice}
                 {quantity > 1 && (
                   <span className="text-sm text-gray-500 font-normal ml-1">
-                    (รวม ฿{item.price * quantity})
+                    (รวม ฿{currentPrice * quantity})
                   </span>
                 )}
               </span>
@@ -94,6 +144,14 @@ function MenuItem({ item, onAdd }) {
           </div>
         </div>
       </div>
+
+      {/* Image Zoom Modal */}
+      <ImageModal
+        isOpen={isModalOpen}
+        image={item.image}
+        title={item.name}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }

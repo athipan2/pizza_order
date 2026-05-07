@@ -44,12 +44,58 @@ function App() {
         } else {
           const pList = Array.isArray(fetchedProducts) ? fetchedProducts : (fetchedProducts.data || []);
           if (Array.isArray(pList)) {
-            const sanitizedProducts = pList.map(p => ({
-              ...p,
-              id: p.id.toString(),
-              price: Number(p.price),
-              image: formatDriveUrl(p.image)
-            }));
+            const sanitizedProducts = pList.map(p => {
+            // ดึงค่าพื้นฐานแบบปกติ
+            let id = p.id ? p.id.toString() : Date.now().toString();
+            let name = p.name || '';
+            let price = Number(p.price || 0);
+            let priceM = Number(p.priceM || 0);
+            let priceL = Number(p.priceL || 0);
+            let category = p.category || '';
+            let description = p.description ? p.description.toString() : '';
+            let image = p.image || '';
+
+            // --- ระบบกู้คืนข้อมูลกรณีลำดับคอลัมน์เยื้อง (Self-healing logic) ---
+            const validCategories = ['pizza', 'sontam', 'drink'];
+
+            // กรณีที่ 1: category ไปอยู่ในช่อง priceM (เยื้องเพราะใช้หัวตาราง 6 คอลัมน์ดั้งเดิม แต่ API ดึงแบบ 8 คอลัมน์)
+            // โครงสร้างที่พบจริง: [id, name, price, category, description, image]
+            // ถูกแมพเป็น: [id, name, price, priceM, priceL, category, description, image]
+            if (validCategories.includes(p.priceM)) {
+              category = p.priceM;
+              description = (p.priceL || '').toString();
+              image = p.category || '';
+              priceM = 0;
+              priceL = 0;
+            }
+            // กรณีที่ 2: category ไปอยู่ในช่อง image (เยื้อง 2 ตำแหน่ง)
+            else if (validCategories.includes(image)) {
+              category = image;
+              priceM = Number(p.category || 0);
+              priceL = Number(p.description || 0);
+              description = (p[""] || p["COLUMN_G"] || p["column7"] || '').toString();
+              image = p["image_url"] || p["COLUMN_H"] || p["column8"] || '';
+            }
+            // กรณีที่ 3: category ไปอยู่ในช่อง description (เยื้อง 1 ตำแหน่ง)
+            else if (validCategories.includes(description)) {
+              category = description;
+              priceM = Number(p.category || 0);
+              description = (p.image || '').toString();
+              image = p[""] || '';
+            }
+
+              return {
+                ...p,
+              id,
+              name,
+              price,
+              priceM,
+              priceL,
+              category,
+              description,
+                image: formatDriveUrl(image)
+              };
+            });
             setProducts(sanitizedProducts);
           }
         }
