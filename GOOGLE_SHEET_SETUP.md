@@ -174,14 +174,26 @@ function setupSheets(ss) {
 function getSheetDataAsJson(sheet, parseCart = false) {
   const data = sheet.getDataRange().getValues();
   if (data.length <= 1) return [];
-  const headers = data[0];
+
+  const sheetName = sheet.getName();
+  let headers = data[0];
+
+  // มาตรฐานใหม่: บังคับใช้ header ที่ถูกต้องเพื่อป้องกันปัญหาข้อมูลเยื้องหน้าเว็บ
+  if (sheetName === 'Products') {
+    headers = ['id', 'name', 'price', 'priceM', 'priceL', 'category', 'description', 'image'];
+  } else if (sheetName === 'Orders') {
+    headers = ['id', 'name', 'phone', 'address', 'deliveryMethod', 'paymentMethod', 'cartItems', 'total', 'status', 'createdAt', 'slipFile', 'location', 'remark'];
+  }
+
   return data.slice(1).map(row => {
     let obj = {};
-    headers.forEach((header, index) => {
+    // วนลูปตามจำนวนคอลัมน์ที่มีจริงในแถวนั้นๆ
+    row.forEach((cellValue, index) => {
+      const header = headers[index] || "column" + (index + 1);
       if (parseCart && header === 'cartItems') {
-        try { obj[header] = JSON.parse(row[index]); } catch(e) { obj[header] = []; }
+        try { obj[header] = JSON.parse(cellValue); } catch(e) { obj[header] = []; }
       } else {
-        obj[header] = row[index];
+        obj[header] = cellValue;
       }
     });
     return obj;
