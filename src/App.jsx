@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import CustomerPage from './pages/CustomerPage';
 import AdminPage from './pages/AdminPage';
 import AdminDashboard from './pages/AdminDashboard';
@@ -7,6 +7,7 @@ import SalesHistory from './pages/SalesHistory';
 import { initialMenuItems } from './data/menu';
 import { googleSheetsApi } from './utils/googleSheets';
 import { formatDriveUrl } from './utils/imageUtils';
+import { playNotificationSound } from './utils/audio';
 
 function App() {
   const [adminView, setAdminView] = useState('dashboard'); // dashboard | orders | products | sales
@@ -19,6 +20,8 @@ function App() {
   const [successMessage, setSuccessMessage] = useState(null);
   const [updatingOrders, setUpdatingOrders] = useState(new Set()); // ติดตามออเดอร์ที่กำลังบันทึก
   const [isUpdatingProducts, setIsUpdatingProducts] = useState(false); // สำหรับ Product Manager
+  const prevOrdersCountRef = useRef(0);
+  const isFirstLoadRef = useRef(true);
 
   // ตรวจสอบ URL path เพื่อกำหนดว่าเป็นหน้าแอดมินหรือลูกค้า
   const isAdminPage = window.location.pathname.startsWith('/admin');
@@ -133,7 +136,14 @@ function App() {
                 cartItems: Array.isArray(o.cartItems) ? o.cartItems : (typeof o.cartItems === 'string' ? JSON.parse(o.cartItems) : [])
               };
             }).sort((a, b) => b.id - a.id);
+            // ตรวจสอบออเดอร์ใหม่สำหรับแอดมิน
+            if (isAdminPage && !isFirstLoadRef.current && sanitizedOrders.length > prevOrdersCountRef.current) {
+              playNotificationSound();
+            }
+
             setOrders(sanitizedOrders);
+            prevOrdersCountRef.current = sanitizedOrders.length;
+            isFirstLoadRef.current = false;
             setLastUpdated(new Date());
           }
         }
@@ -159,11 +169,11 @@ function App() {
     fetchData();
 
     // ตั้งเวลาดึงข้อมูลอัตโนมัติ
-    // หน้าแอดมินทุก 2 นาที
+    // หน้าแอดมินทุก 20 วินาที (ปรับจาก 2 นาที เพื่อให้แจ้งเตือนทันใจขึ้น)
     // หน้าลูกค้าทุก 3 วินาที เพื่อติดตามสถานะออเดอร์เรียลไทม์
     const interval = setInterval(() => {
       fetchData(false);
-    }, isAdminPage ? 120000 : 3000);
+    }, isAdminPage ? 20000 : 3000);
 
     return () => clearInterval(interval);
   }, [isAdminPage]);
