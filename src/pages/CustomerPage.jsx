@@ -83,7 +83,7 @@ function CustomerPage({ onAddOrder, products, orders }) {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold">🍽️ ร้านอาหารอร่อยใกล้บ้าน</h1>
-              <p className="text-sm text-primary-100">{activeTab === 'menu' ? 'พิซซ่า | ส้มตำ | เครื่องดื่ม' : 'ติดตามสถานะออเดอร์ของคุณ'}</p>
+              <p className="text-sm text-primary-100">{activeTab === 'menu' ? 'พิซซ่า | ส้มตำ | เครื่องดื่ม | อื่นๆ' : 'ติดตามสถานะออเดอร์ของคุณ'}</p>
             </div>
             {activeTab === 'menu' && (
               <button

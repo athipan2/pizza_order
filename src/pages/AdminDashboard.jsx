@@ -42,7 +42,7 @@ function AdminDashboard({ orders, products, onNavigate, onRefresh, isRefreshing 
       value: products.length, 
       icon: Package, 
       color: 'bg-blue-500',
-      trend: `${products.filter(p => p.category === 'pizza').length} พิซซ่า`
+      trend: `${products.filter(p => p.category === 'others').length} อื่นๆ`
     },
     { 
       title: 'กำลังทำ', 

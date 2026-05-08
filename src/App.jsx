@@ -59,7 +59,7 @@ function App() {
             let image = p.image || '';
 
             // --- ระบบกู้คืนข้อมูลกรณีลำดับคอลัมน์เยื้อง (Self-healing logic) ---
-            const validCategories = ['pizza', 'sontam', 'drink'];
+            const validCategories = ['pizza', 'sontam', 'drink', 'others'];
 
             // กรณีที่ 1: category ไปอยู่ในช่อง priceM (เยื้องเพราะใช้หัวตาราง 6 คอลัมน์ดั้งเดิม แต่ API ดึงแบบ 8 คอลัมน์)
             // โครงสร้างที่พบจริง: [id, name, price, category, description, image]
