@@ -94,11 +94,13 @@ export const categories = [
   { id: "all", name: "ทั้งหมด", icon: "🍽️" },
   { id: "pizza", name: "พิซซ่า", icon: "🍕" },
   { id: "sontam", name: "ส้มตำ", icon: "🥗" },
-  { id: "drink", name: "เครื่องดื่ม", icon: "🥤" }
+  { id: "drink", name: "เครื่องดื่ม", icon: "🥤" },
+  { id: "others", name: "อื่นๆ", icon: "📦" }
 ];
 
 export const categoryOptions = [
   { value: "pizza", label: "🍕 พิซซ่า" },
   { value: "sontam", label: "🥗 ส้มตำ" },
-  { value: "drink", label: "🥤 เครื่องดื่ม" }
+  { value: "drink", label: "🥤 เครื่องดื่ม" },
+  { value: "others", label: "📦 อื่นๆ" }
 ];

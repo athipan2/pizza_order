@@ -81,14 +81,14 @@ function ProductManager({ products, onAdd, onEdit, onDelete, onBack, isUpdating 
 
       <main className="max-w-6xl mx-auto p-4">
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 sm:gap-4 mb-6">
           <div className="bg-white rounded-xl p-2 sm:p-4 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
               <div className="p-2 sm:p-3 bg-primary-100 rounded-lg w-fit">
                 <Package className="text-primary-600" size={20} />
               </div>
               <div>
-                <p className="text-xs sm:text-sm text-gray-500">สินค้า</p>
+                <p className="text-xs sm:text-sm text-gray-500">สินค้าทั้งหมด</p>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">{products.length}</p>
               </div>
             </div>
@@ -115,6 +115,32 @@ function ProductManager({ products, onAdd, onEdit, onDelete, onBack, isUpdating 
                 <p className="text-xs sm:text-sm text-gray-500">ส้มตำ</p>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">
                   {products.filter(p => p.category === 'sontam').length}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl p-2 sm:p-4 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+              <div className="p-2 sm:p-3 bg-blue-100 rounded-lg w-fit">
+                <span className="text-xl sm:text-2xl">🥤</span>
+              </div>
+              <div>
+                <p className="text-xs sm:text-sm text-gray-500">เครื่องดื่ม</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                  {products.filter(p => p.category === 'drink').length}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl p-2 sm:p-4 shadow-sm col-span-2 md:col-span-1">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+              <div className="p-2 sm:p-3 bg-gray-100 rounded-lg w-fit">
+                <span className="text-xl sm:text-2xl">📦</span>
+              </div>
+              <div>
+                <p className="text-xs sm:text-sm text-gray-500">อื่นๆ</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                  {products.filter(p => p.category === 'others').length}
                 </p>
               </div>
             </div>

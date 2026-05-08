@@ -48,11 +48,13 @@ function ProductCard({ product, onEdit, onDelete }) {
           <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
             product.category === 'pizza' ? 'bg-orange-100 text-orange-700' :
             product.category === 'sontam' ? 'bg-green-100 text-green-700' :
-            'bg-blue-100 text-blue-700'
+            product.category === 'drink' ? 'bg-blue-100 text-blue-700' :
+            'bg-gray-100 text-gray-700'
           }`}>
             {product.category === 'pizza' && '🍕 พิซซ่า'}
             {product.category === 'sontam' && '🥗 ส้มตำ'}
             {product.category === 'drink' && '🥤 เครื่องดื่ม'}
+            {product.category === 'others' && '📦 อื่นๆ'}
           </span>
         </div>
       </div>
