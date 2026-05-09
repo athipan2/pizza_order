@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import CustomerPage from './pages/CustomerPage';
 import AdminPage from './pages/AdminPage';
 import AdminDashboard from './pages/AdminDashboard';
@@ -8,7 +8,9 @@ import ShopSettings from './pages/ShopSettings';
 import { initialMenuItems } from './data/menu';
 import { googleSheetsApi } from './utils/googleSheets';
 import { formatDriveUrl } from './utils/imageUtils';
-import { playNotificationSound } from './utils/audio';
+import { playNotificationSound, startNotificationLoop, stopNotificationLoop } from './utils/audio';
+import NewOrderPopup from './components/admin/NewOrderPopup';
+import { OrderStatus } from './types';
 
 function App() {
   const [adminView, setAdminView] = useState('dashboard'); // dashboard | orders | products | sales | settings
@@ -27,6 +29,7 @@ function App() {
   const [successMessage, setSuccessMessage] = useState(null);
   const [updatingOrders, setUpdatingOrders] = useState(new Set()); // ติดตามออเดอร์ที่กำลังบันทึก
   const [isUpdatingProducts, setIsUpdatingProducts] = useState(false); // สำหรับ Product Manager
+  const [showNewOrderPopup, setShowNewOrderPopup] = useState(false);
   const prevOrdersCountRef = useRef(0);
   const isFirstLoadRef = useRef(true);
 
@@ -166,7 +169,7 @@ function App() {
             }).sort((a, b) => b.id - a.id);
             // ตรวจสอบออเดอร์ใหม่สำหรับแอดมิน
             if (isAdminPage && !isFirstLoadRef.current && sanitizedOrders.length > prevOrdersCountRef.current) {
-              playNotificationSound();
+              // playNotificationSound(); // Remove individual sound in favor of loop
             }
 
             setOrders(sanitizedOrders);
@@ -205,6 +208,29 @@ function App() {
 
     return () => clearInterval(interval);
   }, [isAdminPage]);
+
+  // ระบบแจ้งเตือนออเดอร์ใหม่ (เสียงวนลูป + Popup) สำหรับแอดมิน
+  const unacceptedOrders = useMemo(() => {
+    if (!isAdminPage) return [];
+    // ออเดอร์ที่ถือว่ายังไม่ได้รับ คือ สถานะ 'รอชำระเงิน' หรือ 'ชำระแล้ว'
+    return orders.filter(o =>
+      o.status === OrderStatus.PENDING_PAYMENT ||
+      o.status === OrderStatus.PAID
+    );
+  }, [orders, isAdminPage]);
+
+  useEffect(() => {
+    if (isAdminPage && unacceptedOrders.length > 0) {
+      startNotificationLoop();
+      setShowNewOrderPopup(true);
+    } else {
+      stopNotificationLoop();
+      setShowNewOrderPopup(false);
+    }
+
+    // Cleanup on unmount or when leaving admin page
+    return () => stopNotificationLoop();
+  }, [unacceptedOrders.length, isAdminPage]);
 
   const handleAddOrder = async (order) => {
     setOrders(prev => [order, ...prev]);
@@ -342,6 +368,13 @@ function App() {
 
   return (
     <div className="min-h-screen bg-primary-50">
+      {isAdminPage && showNewOrderPopup && unacceptedOrders.length > 0 && (
+        <NewOrderPopup
+          orders={unacceptedOrders}
+          onAccept={(id) => handleUpdateStatus(id, OrderStatus.PREPARING)}
+          onDismiss={() => setShowNewOrderPopup(false)}
+        />
+      )}
       {error && (
         <div className="bg-red-500 text-white px-4 py-2 text-center text-sm font-medium animate-pulse sticky top-0 z-[60] flex items-center justify-center gap-2">
           <span>⚠️ {error}</span>
