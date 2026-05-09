@@ -15,6 +15,24 @@ import { OrderStatus } from './types';
 function App() {
   const [adminView, setAdminView] = useState('dashboard'); // dashboard | orders | products | sales | settings
   const [orders, setOrders] = useState([]);
+
+  const { todayOrders, pastOrders } = useMemo(() => {
+    const todayStr = new Date().toDateString();
+    const todayList = [];
+    const pastList = [];
+
+    orders.forEach(order => {
+      const orderDate = new Date(order.createdAt).toDateString();
+      if (orderDate === todayStr) {
+        todayList.push(order);
+      } else {
+        pastList.push(order);
+      }
+    });
+
+    return { todayOrders: todayList, pastOrders: pastList };
+  }, [orders]);
+
   const [products, setProducts] = useState(initialMenuItems);
   const [settings, setSettings] = useState({
     bankName: '',
@@ -402,7 +420,7 @@ function App() {
         <>
           {adminView === 'dashboard' && (
             <AdminDashboard
-              orders={orders}
+              orders={todayOrders}
               products={products}
               onNavigate={navigateAdmin}
               onRefresh={() => fetchData(false)}
@@ -411,7 +429,7 @@ function App() {
           )}
           {adminView === 'orders' && (
             <AdminPage
-              orders={orders}
+              orders={todayOrders}
               onUpdateStatus={handleUpdateStatus}
               onBack={() => setAdminView('dashboard')}
               updatingOrders={updatingOrders}
@@ -429,7 +447,7 @@ function App() {
           )}
           {adminView === 'sales' && (
             <SalesHistory
-              orders={orders}
+              orders={pastOrders}
               onBack={() => setAdminView('dashboard')}
             />
           )}

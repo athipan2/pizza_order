@@ -31,7 +31,7 @@ function AdminDashboard({ orders, products, onNavigate, onRefresh, isRefreshing 
       trend: '+12%'
     },
     { 
-      title: 'ออเดอร์ทั้งหมด', 
+      title: 'ออเดอร์วันนี้',
       value: totalOrders, 
       icon: ShoppingBag, 
       color: 'bg-primary-500',
