@@ -11,10 +11,6 @@ import {
 } from 'lucide-react';
 
 function SalesHistory({ orders, onBack }) {
-  // วันนี้
-  const today = new Date().toDateString();
-  const [selectedDate, setSelectedDate] = useState(today);
-
   // จัดกลุ่มออเดอร์ตามวันที่
   const dailyStats = useMemo(() => {
     const grouped = {};
@@ -54,6 +50,10 @@ function SalesHistory({ orders, onBack }) {
       .map(([key]) => key);
   }, [dailyStats]);
 
+  // วันนี้
+  const today = new Date().toDateString();
+  const [selectedDate, setSelectedDate] = useState(availableDates[0] || today);
+
   // ข้อมูลวันที่เลือก
   const currentDayData = dailyStats[selectedDate] || {
     dateLabel: new Date(selectedDate).toLocaleDateString('th-TH', {
@@ -86,7 +86,7 @@ function SalesHistory({ orders, onBack }) {
     setSelectedDate(today);
   };
 
-  const isToday = selectedDate === today;
+  const isLatest = selectedDate === availableDates[0];
 
   // คำนวณยอดรวมทั้งหมด (ทุกวัน)
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
@@ -141,7 +141,9 @@ function SalesHistory({ orders, onBack }) {
             <div className="text-center">
               <p className="text-sm text-gray-500">กำลังดูยอดขายวัน</p>
               <p className="text-lg font-bold text-gray-900">{currentDayData.dateLabel}</p>
-              {isToday && <span className="text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full">วันนี้</span>}
+              {isLatest && availableDates.length > 0 && (
+                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">ล่าสุด</span>
+              )}
             </div>
             
             <button
@@ -153,13 +155,13 @@ function SalesHistory({ orders, onBack }) {
             </button>
           </div>
           
-          {!isToday && (
+          {!isLatest && availableDates.length > 0 && (
             <button
-              onClick={goToToday}
+              onClick={() => setSelectedDate(availableDates[0])}
               className="w-full mt-3 py-2 flex items-center justify-center gap-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors text-sm font-medium"
             >
               <RotateCcw size={16} />
-              กลับไปวันนี้
+              กลับไปวันล่าสุดที่มีข้อมูล
             </button>
           )}
         </div>
@@ -172,7 +174,7 @@ function SalesHistory({ orders, onBack }) {
                 <DollarSign className="text-green-600" size={24} />
               </div>
               <div>
-                <p className="text-sm text-gray-500">ยอดขายวันนี้</p>
+                <p className="text-sm text-gray-500">ยอดขายวันที่เลือก</p>
                 <p className="text-xl font-bold text-gray-900">฿{currentDayData.totalSales.toLocaleString()}</p>
               </div>
             </div>
@@ -194,9 +196,9 @@ function SalesHistory({ orders, onBack }) {
         {/* สรุปรวมทุกวัน (แสดงเล็กๆ ด้านล่าง) */}
         <div className="bg-gray-100 rounded-xl p-4">
           <p className="text-sm text-gray-500 text-center">
-            ยอดขายสะสมถึงวันนี้: <span className="font-bold text-gray-900">฿{cumulativeRevenue.toLocaleString()}</span>
+            ยอดขายสะสมถึงวันที่เลือก: <span className="font-bold text-gray-900">฿{cumulativeRevenue.toLocaleString()}</span>
             <span className="mx-2">|</span>
-            ยอดรวมทั้งหมด: <span className="font-bold text-gray-900">฿{totalRevenue.toLocaleString()}</span>
+            ยอดรวมประวัติทั้งหมด: <span className="font-bold text-gray-900">฿{totalRevenue.toLocaleString()}</span>
             <span className="mx-2">|</span>
             {availableDates.length} วัน
           </p>
@@ -243,11 +245,11 @@ function SalesHistory({ orders, onBack }) {
                       <p className="font-semibold text-gray-900">฿{order.total.toLocaleString()}</p>
                       <span className={`text-xs px-2 py-1 rounded-full ${
                         order.status === 'เสร็จสิ้น' ? 'bg-green-100 text-green-700' :
-                        order.status === 'รอชำระเงิน' ? 'bg-yellow-100 text-yellow-700' :
+                        order.status === 'รอชำระเงิน' ? 'bg-red-100 text-red-700 font-bold animate-pulse' :
                         order.status === 'ชำระแล้ว' ? 'bg-blue-100 text-blue-700' :
                         'bg-orange-100 text-orange-700'
                       }`}>
-                        {order.status}
+                        {order.status === 'รอชำระเงิน' ? '⚠️ ค้างชำระ' : order.status}
                       </span>
                     </div>
                   </div>

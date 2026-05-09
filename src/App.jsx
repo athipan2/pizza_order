@@ -15,6 +15,24 @@ import { OrderStatus } from './types';
 function App() {
   const [adminView, setAdminView] = useState('dashboard'); // dashboard | orders | products | sales | settings
   const [orders, setOrders] = useState([]);
+
+  const { todayOrders, pastOrders } = useMemo(() => {
+    const todayStr = new Date().toDateString();
+    const todayList = [];
+    const pastList = [];
+
+    orders.forEach(order => {
+      const orderDate = new Date(order.createdAt).toDateString();
+      if (orderDate === todayStr) {
+        todayList.push(order);
+      } else {
+        pastList.push(order);
+      }
+    });
+
+    return { todayOrders: todayList, pastOrders: pastList };
+  }, [orders]);
+
   const [products, setProducts] = useState(initialMenuItems);
   const [settings, setSettings] = useState({
     bankName: '',
@@ -158,12 +176,34 @@ function App() {
                 }
               }
 
+              // จัดการวันที่ให้ถูกต้อง (รองรับทั้ง ISO และ Thai Locale string ดั้งเดิม)
+              let createdAt = o.createdAt;
+              try {
+                let dateObj = new Date(createdAt);
+                // ถ้าเป็น NaN หรือ ปีมากกว่า 2500 (น่าจะเป็นปี พ.ศ. ที่ browser ตีความเป็น ค.ศ.)
+                if (isNaN(dateObj.getTime()) || dateObj.getFullYear() > 2500) {
+                  // พยายามดึงตัวเลขปีออกมาแล้วลบ 543
+                  const yearMatch = createdAt.match(/\b(25|26)\d{2}\b/);
+                  if (yearMatch) {
+                    const thaiYear = parseInt(yearMatch[0]);
+                    const adYear = thaiYear - 543;
+                    createdAt = createdAt.replace(yearMatch[0], adYear.toString());
+                    dateObj = new Date(createdAt);
+                  }
+                }
+                createdAt = dateObj.toISOString();
+              } catch (e) {
+                console.error("Date parsing error:", e);
+                createdAt = new Date().toISOString();
+              }
+
               return {
                 ...o,
                 id: o.id.toString(),
                 phone: sanitizedPhone,
                 total: Number(o.total),
                 location: location,
+                createdAt: createdAt,
                 cartItems: Array.isArray(o.cartItems) ? o.cartItems : (typeof o.cartItems === 'string' ? JSON.parse(o.cartItems) : [])
               };
             }).sort((a, b) => b.id - a.id);
@@ -402,7 +442,7 @@ function App() {
         <>
           {adminView === 'dashboard' && (
             <AdminDashboard
-              orders={orders}
+              orders={todayOrders}
               products={products}
               onNavigate={navigateAdmin}
               onRefresh={() => fetchData(false)}
@@ -411,7 +451,7 @@ function App() {
           )}
           {adminView === 'orders' && (
             <AdminPage
-              orders={orders}
+              orders={todayOrders}
               onUpdateStatus={handleUpdateStatus}
               onBack={() => setAdminView('dashboard')}
               updatingOrders={updatingOrders}
@@ -429,7 +469,7 @@ function App() {
           )}
           {adminView === 'sales' && (
             <SalesHistory
-              orders={orders}
+              orders={pastOrders}
               onBack={() => setAdminView('dashboard')}
             />
           )}
