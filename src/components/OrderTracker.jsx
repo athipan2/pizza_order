@@ -193,7 +193,9 @@ function OrderTracker({ orders }) {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <p className="text-sm text-gray-500">ออเดอร์ #{order.id.toString().slice(-6)}</p>
-                        <p className="text-xs text-gray-400">{order.createdAt}</p>
+                        <p className="text-xs text-gray-400">
+                          {new Date(order.createdAt).toLocaleString('th-TH')}
+                        </p>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status, true)}`}>
                         {order.status === OrderStatus.DELIVERED ? 'กำลังจัดส่ง' : order.status}

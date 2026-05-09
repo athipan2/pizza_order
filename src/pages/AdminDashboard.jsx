@@ -216,7 +216,14 @@ function AdminDashboard({ orders, products, onNavigate, onRefresh, isRefreshing 
                       <span className={`px-2 py-1 rounded-lg text-xs font-medium ${getStatusColor(order.status)}`}>
                         {order.status}
                       </span>
-                      <p className="text-xs text-gray-400 mt-1">{order.createdAt}</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {new Date(order.createdAt).toLocaleString('th-TH', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          day: '2-digit',
+                          month: '2-digit'
+                        })}
+                      </p>
                     </div>
                   </div>
                 </div>

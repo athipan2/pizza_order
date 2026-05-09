@@ -65,7 +65,7 @@ function CustomerPage({ onAddOrder, products, orders, settings }) {
       id: Date.now(),
       ...orderData,
       status: OrderStatus.PENDING_PAYMENT,
-      createdAt: new Date().toLocaleString('th-TH')
+      createdAt: new Date().toISOString()
     };
     await onAddOrder(order);
     setIsSubmitting(false);
