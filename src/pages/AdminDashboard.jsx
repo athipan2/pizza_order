@@ -66,6 +66,12 @@ function AdminDashboard({ orders, products, onNavigate, onRefresh, isRefreshing 
       desc: 'เพิ่ม แก้ไข เมนูอาหาร',
       color: 'bg-orange-50 border-orange-200'
     },
+    {
+      id: 'settings',
+      title: '⚙️ ตั้งค่าร้านค้า',
+      desc: 'ตั้งค่าบัญชีธนาคารและ QR Code',
+      color: 'bg-purple-50 border-purple-200'
+    },
     { 
       id: 'sales', 
       title: '📊 ประวัติยอดขาย', 

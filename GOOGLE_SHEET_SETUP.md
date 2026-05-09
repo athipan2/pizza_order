@@ -42,6 +42,15 @@ function doGet(e) {
       return createJsonResponse(getSheetDataAsJson(sheet, true));
     }
 
+    if (action === 'getSettings') {
+      const sheet = ss.getSheetByName('Settings');
+      if (!sheet) {
+        return createJsonResponse({ bankName: "", accountNumber: "", accountHolder: "", qrCode: "" });
+      }
+      const data = getSheetDataAsJson(sheet);
+      return createJsonResponse(data.length > 0 ? data[0] : { bankName: "", accountNumber: "", accountHolder: "", qrCode: "" });
+    }
+
     return createJsonResponse({ status: "error", message: "Unknown GET action: " + action });
   } catch (err) {
     return createJsonResponse({ status: "error", message: "GET Error: " + err.toString() });
@@ -153,6 +162,34 @@ function doPost(e) {
       return createJsonResponse({ status: found ? 'success' : 'error', message: found ? '' : 'Order not found' });
     }
 
+    if (action === 'updateSettings') {
+      let sheet = ss.getSheetByName('Settings');
+      if (!sheet) {
+        sheet = ss.insertSheet('Settings');
+        sheet.getRange(1, 1, 1, 4).setValues([['bankName', 'accountNumber', 'accountHolder', 'qrCode']]);
+      }
+
+      let qrCodeUrl = data.qrCode;
+      if (qrCodeUrl && qrCodeUrl.startsWith('data:')) {
+        qrCodeUrl = uploadToDrive(qrCodeUrl, "Shop_QRCode");
+      }
+
+      const settingsData = [
+        data.bankName || "",
+        data.accountNumber || "",
+        data.accountHolder || "",
+        qrCodeUrl || ""
+      ];
+
+      if (sheet.getLastRow() > 1) {
+        sheet.getRange(2, 1, 1, 4).setValues([settingsData]);
+      } else {
+        sheet.appendRow(settingsData);
+      }
+      SpreadsheetApp.flush();
+      return createJsonResponse({ status: 'success' });
+    }
+
     return createJsonResponse({ status: "error", message: "Unknown POST action: " + action });
   } catch (err) {
     return createJsonResponse({ status: "error", message: "POST Error: " + err.toString() });
@@ -169,6 +206,11 @@ function setupSheets(ss) {
   if (!oSheet) oSheet = ss.insertSheet('Orders');
   oSheet.getRange(1, 1, 1, 13).setValues([['id', 'name', 'phone', 'address', 'deliveryMethod', 'paymentMethod', 'cartItems', 'total', 'status', 'createdAt', 'slipFile', 'location', 'remark']]);
   oSheet.getRange(1, 1, 1, 13).setFontWeight("bold").setBackground("#f3f3f3");
+
+  let sSheet = ss.getSheetByName('Settings');
+  if (!sSheet) sSheet = ss.insertSheet('Settings');
+  sSheet.getRange(1, 1, 1, 4).setValues([['bankName', 'accountNumber', 'accountHolder', 'qrCode']]);
+  sSheet.getRange(1, 1, 1, 4).setFontWeight("bold").setBackground("#f3f3f3");
 }
 
 function getSheetDataAsJson(sheet, parseCart = false) {
@@ -183,6 +225,8 @@ function getSheetDataAsJson(sheet, parseCart = false) {
     headers = ['id', 'name', 'price', 'priceM', 'priceL', 'category', 'description', 'image'];
   } else if (sheetName === 'Orders') {
     headers = ['id', 'name', 'phone', 'address', 'deliveryMethod', 'paymentMethod', 'cartItems', 'total', 'status', 'createdAt', 'slipFile', 'location', 'remark'];
+  } else if (sheetName === 'Settings') {
+    headers = ['bankName', 'accountNumber', 'accountHolder', 'qrCode'];
   }
 
   return data.slice(1).map(row => {

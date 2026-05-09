@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Upload, CreditCard, QrCode, Banknote, ArrowLeft, MapPin, AlertCircle, Loader2, CheckCircle, MessageSquare } from 'lucide-react';
+import { Upload, CreditCard, QrCode, Banknote, ArrowLeft, MapPin, AlertCircle, Loader2, CheckCircle, MessageSquare, Landmark } from 'lucide-react';
 import { PaymentMethod, DeliveryMethod } from '../types';
 
-function CheckoutForm({ cartItems, total, onSubmit, onCancel }) {
+function CheckoutForm({ cartItems, total, onSubmit, onCancel, settings }) {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -319,13 +319,65 @@ function CheckoutForm({ cartItems, total, onSubmit, onCancel }) {
           </div>
         </div>
 
-        {/* อัปโหลดสลิป (ถ้าเลือกโอนบัญชี) */}
-        {formData.paymentMethod === PaymentMethod.BANK_TRANSFER && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              อัปโหลดสลิปโอนเงิน <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
+        {/* รายละเอียดการชำระเงินและอัปโหลดสลิป */}
+        {(formData.paymentMethod === PaymentMethod.PROMPTPAY || formData.paymentMethod === PaymentMethod.BANK_TRANSFER) && (
+          <div className="space-y-4 pt-2 border-t border-gray-100">
+            {/* ข้อมูล QR Code หรือ บัญชีธนาคาร */}
+            {formData.paymentMethod === PaymentMethod.PROMPTPAY ? (
+              <div className="bg-primary-50 rounded-2xl p-4 text-center space-y-3">
+                <p className="font-bold text-primary-800">สแกน QR Code เพื่อชำระเงิน</p>
+                {settings?.qrCode ? (
+                  <div className="bg-white p-2 rounded-xl inline-block shadow-sm border border-primary-100">
+                    <img
+                      src={settings.qrCode}
+                      alt="Shop QR Code"
+                      className="w-48 h-48 object-contain mx-auto"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-48 h-48 bg-gray-100 rounded-xl flex items-center justify-center mx-auto border-2 border-dashed border-gray-300">
+                    <p className="text-gray-400 text-xs px-4">ยังไม่ได้ตั้งค่า QR Code</p>
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <p className="text-xs text-gray-500">ยอดชำระ: <span className="text-lg font-bold text-primary-600">฿{total}</span></p>
+                  {settings?.accountHolder && (
+                    <p className="text-xs text-gray-600 font-medium">ชื่อบัญชี: {settings.accountHolder}</p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="bg-blue-50 rounded-2xl p-4 space-y-3 border border-blue-100">
+                <p className="font-bold text-blue-800 flex items-center gap-2">
+                  <Landmark size={18} />
+                  ข้อมูลการโอนเงิน
+                </p>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-blue-600">ธนาคาร:</span>
+                    <span className="font-bold text-blue-900">{settings?.bankName || '-'}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-blue-600">เลขที่บัญชี:</span>
+                    <span className="font-bold text-blue-900 text-lg tracking-wider">{settings?.accountNumber || '-'}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-blue-600">ชื่อบัญชี:</span>
+                    <span className="font-bold text-blue-900">{settings?.accountHolder || '-'}</span>
+                  </div>
+                </div>
+                <div className="pt-2 border-t border-blue-100 text-center">
+                  <p className="text-xs text-blue-500">ยอดชำระ: <span className="text-lg font-bold text-blue-700">฿{total}</span></p>
+                </div>
+              </div>
+            )}
+
+            {/* อัปโหลดสลิป */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                อัปโหลดสลิปโอนเงิน <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
               <input
                 type="file"
                 accept="image/*"
@@ -345,6 +397,7 @@ function CheckoutForm({ cartItems, total, onSubmit, onCancel }) {
               </label>
             </div>
           </div>
+        </div>
         )}
 
         {/* สรุปยอด */}

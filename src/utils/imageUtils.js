@@ -4,6 +4,9 @@
 export const formatDriveUrl = (url) => {
   if (!url) return url;
 
+  // If it's a data URL (Base64), return as is
+  if (url.startsWith('data:')) return url;
+
   // ตรวจสอบว่าเป็น Google Drive URL หรือไม่
   if (url.includes('drive.google.com')) {
     let fileId = '';

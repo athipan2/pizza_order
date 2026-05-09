@@ -1,4 +1,4 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycbzY1iwwJS5VuG1LnkHseJsMrq0dtzlPv5e-f6fAmjAS-Ah0tquE2cjaW5ZbGz0CsG8J/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyR9D_VPNB4Gyd7Hh65mkmVLfAoYvhVpUrBlVrzuM2bWB2Kouhf_E8k5d6QeUno1m5D/exec';
 
 export const googleSheetsApi = {
   async getProducts() {
@@ -124,6 +124,37 @@ export const googleSheetsApi = {
       return result;
     } catch (error) {
       console.error('Error updating order status:', error);
+      throw error;
+    }
+  },
+
+  async getSettings() {
+    try {
+      const response = await fetch(`${API_URL}?action=getSettings&_=${Date.now()}`);
+      if (!response.ok) throw new Error('Network response was not ok');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+      throw error;
+    }
+  },
+
+  async updateSettings(settings) {
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'updateSettings',
+          ...settings
+        }),
+      });
+      if (!response.ok) throw new Error('Network response was not ok');
+      const result = await response.json();
+      if (result.status === 'error') throw new Error(result.message);
+      return result;
+    } catch (error) {
+      console.error('Error updating settings:', error);
       throw error;
     }
   }

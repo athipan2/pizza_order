@@ -7,7 +7,7 @@ import Cart from '../components/Cart';
 import CheckoutForm from '../components/CheckoutForm';
 import OrderTracker from '../components/OrderTracker';
 
-function CustomerPage({ onAddOrder, products, orders }) {
+function CustomerPage({ onAddOrder, products, orders, settings }) {
   const menuItems = products;
   const [cart, setCart] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -178,6 +178,7 @@ function CustomerPage({ onAddOrder, products, orders }) {
                   total={cartTotal}
                   onSubmit={handleCheckout}
                   onCancel={() => !isSubmitting && setShowCheckout(false)}
+                  settings={settings}
                 />
               </div>
             ) : showCart ? (
