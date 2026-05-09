@@ -4,15 +4,22 @@ import AdminPage from './pages/AdminPage';
 import AdminDashboard from './pages/AdminDashboard';
 import ProductManager from './pages/ProductManager';
 import SalesHistory from './pages/SalesHistory';
+import ShopSettings from './pages/ShopSettings';
 import { initialMenuItems } from './data/menu';
 import { googleSheetsApi } from './utils/googleSheets';
 import { formatDriveUrl } from './utils/imageUtils';
 import { playNotificationSound } from './utils/audio';
 
 function App() {
-  const [adminView, setAdminView] = useState('dashboard'); // dashboard | orders | products | sales
+  const [adminView, setAdminView] = useState('dashboard'); // dashboard | orders | products | sales | settings
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState(initialMenuItems);
+  const [settings, setSettings] = useState({
+    bankName: '',
+    accountNumber: '',
+    accountHolder: '',
+    qrCode: ''
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -32,10 +39,20 @@ function App() {
     else setIsRefreshing(true);
 
     try {
-      const [fetchedProducts, fetchedOrders] = await Promise.all([
+      // Use Promise.allSettled for settings to prevent blocking products/orders if it fails
+      const [productsRes, ordersRes, settingsRes] = await Promise.allSettled([
         googleSheetsApi.getProducts(),
-        googleSheetsApi.getOrders()
+        googleSheetsApi.getOrders(),
+        googleSheetsApi.getSettings()
       ]);
+
+      const fetchedProducts = productsRes.status === 'fulfilled' ? productsRes.value : null;
+      const fetchedOrders = ordersRes.status === 'fulfilled' ? ordersRes.value : null;
+      const fetchedSettings = settingsRes.status === 'fulfilled' ? settingsRes.value : null;
+
+      if (productsRes.status === 'rejected') console.error("Failed to fetch products:", productsRes.reason);
+      if (ordersRes.status === 'rejected') console.error("Failed to fetch orders:", ordersRes.reason);
+      if (settingsRes.status === 'rejected') console.warn("Failed to fetch settings:", settingsRes.reason);
 
       let hasError = false;
 
@@ -102,6 +119,17 @@ function App() {
             setProducts(sanitizedProducts);
           }
         }
+      }
+
+      // จัดการข้อมูลการตั้งค่า
+      if (fetchedSettings && fetchedSettings.status !== 'error') {
+        const sData = fetchedSettings.data || fetchedSettings;
+        setSettings({
+          bankName: sData.bankName || '',
+          accountNumber: sData.accountNumber || '',
+          accountHolder: sData.accountHolder || '',
+          qrCode: formatDriveUrl(sData.qrCode || '')
+        });
       }
 
       // จัดการข้อมูลออเดอร์
@@ -263,6 +291,23 @@ function App() {
     }
   };
 
+  const handleUpdateSettings = async (newSettings) => {
+    const oldSettings = { ...settings };
+    setIsUpdatingProducts(true); // Reuse product updating state or add new one
+    setSettings(newSettings);
+    try {
+      await googleSheetsApi.updateSettings(newSettings);
+      showSuccess('บันทึกการตั้งค่าร้านค้าสำเร็จแล้ว');
+    } catch (error) {
+      console.error('Failed to update settings:', error);
+      alert('ไม่สามารถบันทึกการตั้งค่าได้: ' + error.message);
+      setSettings(oldSettings);
+    } finally {
+      setIsUpdatingProducts(false);
+      fetchData(false);
+    }
+  };
+
   const handleDeleteProduct = async (productId) => {
     const oldProducts = [...products];
     setIsUpdatingProducts(true);
@@ -314,7 +359,12 @@ function App() {
         </div>
       )}
       {!isAdminPage ? (
-        <CustomerPage onAddOrder={handleAddOrder} products={products} orders={orders} />
+        <CustomerPage
+          onAddOrder={handleAddOrder}
+          products={products}
+          orders={orders}
+          settings={settings}
+        />
       ) : (
         <>
           {adminView === 'dashboard' && (
@@ -348,6 +398,14 @@ function App() {
             <SalesHistory
               orders={orders}
               onBack={() => setAdminView('dashboard')}
+            />
+          )}
+          {adminView === 'settings' && (
+            <ShopSettings
+              settings={settings}
+              onSave={handleUpdateSettings}
+              onBack={() => setAdminView('dashboard')}
+              isUpdating={isUpdatingProducts}
             />
           )}
         </>
