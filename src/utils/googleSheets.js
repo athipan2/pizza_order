@@ -1,4 +1,4 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycbyR9D_VPNB4Gyd7Hh65mkmVLfAoYvhVpUrBlVrzuM2bWB2Kouhf_E8k5d6QeUno1m5D/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyBM-TA1cNR8fJ-1gRF4BlprjBPDIs4LgUgdo7Hv4aaMy1cRMze736A7nm8GKgjyMbk/exec';
 
 export const googleSheetsApi = {
   async getProducts() {
@@ -20,7 +20,8 @@ export const googleSheetsApi = {
         body: JSON.stringify({
           action: 'addProduct',
           ...product,
-          id: product.id.toString()
+          id: product.id.toString(),
+          isAvailable: product.isAvailable !== undefined ? product.isAvailable : true
         }),
       });
       if (!response.ok) throw new Error('Network response was not ok');
@@ -41,7 +42,8 @@ export const googleSheetsApi = {
         body: JSON.stringify({
           action: 'updateProduct',
           ...product,
-          id: product.id.toString()
+          id: product.id.toString(),
+          isAvailable: product.isAvailable !== undefined ? product.isAvailable : true
         }),
       });
       if (!response.ok) throw new Error('Network response was not ok');
@@ -146,7 +148,8 @@ export const googleSheetsApi = {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'updateSettings',
-          ...settings
+          ...settings,
+          isShopOpen: settings.isShopOpen !== undefined ? settings.isShopOpen : true
         }),
       });
       if (!response.ok) throw new Error('Network response was not ok');

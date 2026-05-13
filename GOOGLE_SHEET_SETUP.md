@@ -45,10 +45,10 @@ function doGet(e) {
     if (action === 'getSettings') {
       const sheet = ss.getSheetByName('Settings');
       if (!sheet) {
-        return createJsonResponse({ bankName: "", accountNumber: "", accountHolder: "", qrCode: "" });
+        return createJsonResponse({ bankName: "", accountNumber: "", accountHolder: "", qrCode: "", isShopOpen: true });
       }
       const data = getSheetDataAsJson(sheet);
-      return createJsonResponse(data.length > 0 ? data[0] : { bankName: "", accountNumber: "", accountHolder: "", qrCode: "" });
+      return createJsonResponse(data.length > 0 ? data[0] : { bankName: "", accountNumber: "", accountHolder: "", qrCode: "", isShopOpen: true });
     }
 
     return createJsonResponse({ status: "error", message: "Unknown GET action: " + action });
@@ -77,7 +77,8 @@ function doPost(e) {
         data.priceL || 0,
         data.category,
         data.description,
-        imageUrl
+        imageUrl,
+        data.isAvailable !== undefined ? data.isAvailable : true
       ]);
       SpreadsheetApp.flush();
       return createJsonResponse({ status: 'success' });
@@ -95,7 +96,7 @@ function doPost(e) {
           if (imageUrl && imageUrl.startsWith('data:')) {
             imageUrl = uploadToDrive(imageUrl, "Product_" + data.id);
           }
-          sheet.getRange(i + 1, 1, 1, 8).setValues([[
+          sheet.getRange(i + 1, 1, 1, 9).setValues([[
             data.id,
             data.name,
             data.price,
@@ -103,7 +104,8 @@ function doPost(e) {
             data.priceL || 0,
             data.category,
             data.description,
-            imageUrl
+            imageUrl,
+            data.isAvailable !== undefined ? data.isAvailable : true
           ]]);
           found = true;
           break;
@@ -166,7 +168,7 @@ function doPost(e) {
       let sheet = ss.getSheetByName('Settings');
       if (!sheet) {
         sheet = ss.insertSheet('Settings');
-        sheet.getRange(1, 1, 1, 4).setValues([['bankName', 'accountNumber', 'accountHolder', 'qrCode']]);
+        sheet.getRange(1, 1, 1, 5).setValues([['bankName', 'accountNumber', 'accountHolder', 'qrCode', 'isShopOpen']]);
       }
 
       let qrCodeUrl = data.qrCode;
@@ -178,11 +180,12 @@ function doPost(e) {
         data.bankName || "",
         data.accountNumber || "",
         data.accountHolder || "",
-        qrCodeUrl || ""
+        qrCodeUrl || "",
+        data.isShopOpen !== undefined ? data.isShopOpen : true
       ];
 
       if (sheet.getLastRow() > 1) {
-        sheet.getRange(2, 1, 1, 4).setValues([settingsData]);
+        sheet.getRange(2, 1, 1, 5).setValues([settingsData]);
       } else {
         sheet.appendRow(settingsData);
       }
@@ -199,8 +202,8 @@ function doPost(e) {
 function setupSheets(ss) {
   let pSheet = ss.getSheetByName('Products');
   if (!pSheet) pSheet = ss.insertSheet('Products');
-  pSheet.getRange(1, 1, 1, 8).setValues([['id', 'name', 'price', 'priceM', 'priceL', 'category', 'description', 'image']]);
-  pSheet.getRange(1, 1, 1, 8).setFontWeight("bold").setBackground("#f3f3f3");
+  pSheet.getRange(1, 1, 1, 9).setValues([['id', 'name', 'price', 'priceM', 'priceL', 'category', 'description', 'image', 'isAvailable']]);
+  pSheet.getRange(1, 1, 1, 9).setFontWeight("bold").setBackground("#f3f3f3");
 
   let oSheet = ss.getSheetByName('Orders');
   if (!oSheet) oSheet = ss.insertSheet('Orders');
@@ -209,8 +212,8 @@ function setupSheets(ss) {
 
   let sSheet = ss.getSheetByName('Settings');
   if (!sSheet) sSheet = ss.insertSheet('Settings');
-  sSheet.getRange(1, 1, 1, 4).setValues([['bankName', 'accountNumber', 'accountHolder', 'qrCode']]);
-  sSheet.getRange(1, 1, 1, 4).setFontWeight("bold").setBackground("#f3f3f3");
+  sSheet.getRange(1, 1, 1, 5).setValues([['bankName', 'accountNumber', 'accountHolder', 'qrCode', 'isShopOpen']]);
+  sSheet.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#f3f3f3");
 }
 
 function getSheetDataAsJson(sheet, parseCart = false) {
@@ -222,18 +225,26 @@ function getSheetDataAsJson(sheet, parseCart = false) {
 
   // มาตรฐานใหม่: บังคับใช้ header ที่ถูกต้องเพื่อป้องกันปัญหาข้อมูลเยื้องหน้าเว็บ
   if (sheetName === 'Products') {
-    headers = ['id', 'name', 'price', 'priceM', 'priceL', 'category', 'description', 'image'];
+    headers = ['id', 'name', 'price', 'priceM', 'priceL', 'category', 'description', 'image', 'isAvailable'];
   } else if (sheetName === 'Orders') {
     headers = ['id', 'name', 'phone', 'address', 'deliveryMethod', 'paymentMethod', 'cartItems', 'total', 'status', 'createdAt', 'slipFile', 'location', 'remark'];
   } else if (sheetName === 'Settings') {
-    headers = ['bankName', 'accountNumber', 'accountHolder', 'qrCode'];
+    headers = ['bankName', 'accountNumber', 'accountHolder', 'qrCode', 'isShopOpen'];
   }
 
   return data.slice(1).map(row => {
     let obj = {};
-    // วนลูปตามจำนวนคอลัมน์ที่มีจริงในแถวนั้นๆ
-    row.forEach((cellValue, index) => {
-      const header = headers[index] || "column" + (index + 1);
+    // วนลูปตามหัวข้อที่กำหนดไว้ (Fixed Headers) เพื่อให้แน่ใจว่าข้อมูลครบทุกฟิลด์
+    headers.forEach((header, index) => {
+      let cellValue = row[index];
+
+      // จัดการค่าว่างให้เป็นค่าเริ่มต้นที่เหมาะสม
+      if (cellValue === undefined || cellValue === "") {
+        if (header === 'isAvailable' || header === 'isShopOpen') cellValue = true;
+        else if (header.startsWith('price')) cellValue = 0;
+        else cellValue = "";
+      }
+
       if (parseCart && header === 'cartItems') {
         try { obj[header] = JSON.parse(cellValue); } catch(e) { obj[header] = []; }
       } else {
@@ -268,5 +279,7 @@ function uploadToDrive(base64Data, fileName) {
 3. กดปุ่ม **Deploy -> New Deployment** (เลือก Web App, Execute as Me, Access **Anyone**)
 4. เมื่อได้ URL มาแล้ว ให้คุณนำมาใส่ในไฟล์ `src/utils/googleSheets.js`
 
+⚠️ **ข้อควรระวังสำคัญ:** ทุกครั้งที่มีการแก้ไขโค้ดใน Apps Script คุณ **ต้อง** กดปุ่ม **Deploy -> New Deployment** ใหม่ทุกครั้งเพื่อให้แอปใช้งานเวอร์ชันล่าสุดได้ (ห้ามใช้ "Manage Deployments" แล้วแก้เวอร์ชันเดิม เพราะบางครั้ง URL จะไม่รับค่าที่อัปเดตทันที)
+
 ---
-*หมายเหตุ: โค้ดเวอร์ชันนี้ใช้ `getDisplayValues()` เพื่อป้องกันปัญหาที่ Google Sheets ปัดเศษตัวเลข ID ขนาดใหญ่ (เช่น 1778036693481) ทำให้เราสามารถลบสินค้าได้ถูกต้องแม่นยำครับ*
+*หมายเหตุ: โค้ดเวอร์ชันนี้รองรับระบบสินค้าหมดและเปิด-ปิดร้าน โดยการเพิ่มคอลัมน์ใน Google Sheets ให้อัตโนมัติเมื่อสั่งรัน `?action=setup` ผ่าน URL ครับ*

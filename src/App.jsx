@@ -38,7 +38,8 @@ function App() {
     bankName: '',
     accountNumber: '',
     accountHolder: '',
-    qrCode: ''
+    qrCode: '',
+    isShopOpen: true
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -95,6 +96,26 @@ function App() {
             let category = p.category || '';
             let description = p.description ? p.description.toString() : '';
             let image = p.image || '';
+            // ตรรกะตรวจสอบสถานะความพร้อมขาย (ค่าเริ่มต้นเป็น true ถ้าไม่มีข้อมูล)
+            // รองรับกรณีชื่อคอลัมน์จาก Google Sheets เพี้ยน (คอลัมน์ที่ 9)
+            let rawAvailable = p.isAvailable;
+            // ตรวจสอบคอลัมน์ที่ 9 แบบครอบคลุมที่สุด (กรณี Header หายหรือ Sheets คืนค่าเป็นชื่อคอลัมน์)
+            const possibleKeys = ['isAvailable', 'column9', 'COLUMN_I', 'COLUMN_9', 'column_9', 'Column9'];
+            for (const key of possibleKeys) {
+              if (p[key] !== undefined) {
+                rawAvailable = p[key];
+                break;
+              }
+            }
+
+            let isAvailable = true;
+            // ตรวจสอบค่าที่เป็น "เท็จ" ในทุกรูปแบบที่ Google Sheets อาจส่งมา
+            if (rawAvailable !== undefined) {
+              const strVal = String(rawAvailable).toLowerCase().trim();
+              if (strVal === 'false' || strVal === '0' || rawAvailable === false || rawAvailable === 0) {
+                isAvailable = false;
+              }
+            }
 
             // --- ระบบกู้คืนข้อมูลกรณีลำดับคอลัมน์เยื้อง (Self-healing logic) ---
             const validCategories = ['pizza', 'sontam', 'drink', 'others'];
@@ -134,7 +155,8 @@ function App() {
               priceL,
               category,
               description,
-                image: formatDriveUrl(image)
+                image: formatDriveUrl(image),
+                isAvailable
               };
             });
             setProducts(sanitizedProducts);
@@ -149,7 +171,8 @@ function App() {
           bankName: sData.bankName || '',
           accountNumber: sData.accountNumber || '',
           accountHolder: sData.accountHolder || '',
-          qrCode: formatDriveUrl(sData.qrCode || '')
+          qrCode: formatDriveUrl(sData.qrCode || ''),
+          isShopOpen: (sData.isShopOpen === false || sData.isShopOpen === 'FALSE' || sData.isShopOpen === 'false') ? false : true
         });
       }
 
@@ -357,6 +380,11 @@ function App() {
     }
   };
 
+  const handleToggleShopOpen = async () => {
+    const newSettings = { ...settings, isShopOpen: !settings.isShopOpen };
+    await handleUpdateSettings(newSettings);
+  };
+
   const handleUpdateSettings = async (newSettings) => {
     const oldSettings = { ...settings };
     setIsUpdatingProducts(true); // Reuse product updating state or add new one
@@ -368,6 +396,35 @@ function App() {
       console.error('Failed to update settings:', error);
       alert('ไม่สามารถบันทึกการตั้งค่าได้: ' + error.message);
       setSettings(oldSettings);
+    } finally {
+      setIsUpdatingProducts(false);
+      fetchData(false);
+    }
+  };
+
+  const handleToggleAvailability = async (productId) => {
+    const idStr = productId.toString();
+    const product = products.find(p => p.id.toString() === idStr);
+    if (!product) return;
+
+    const newStatus = !product.isAvailable;
+    const oldProducts = [...products];
+
+    // 1. อัปเดต UI ทันที (Optimistic Update)
+    setProducts(prev =>
+      prev.map(p => p.id.toString() === idStr ? { ...p, isAvailable: newStatus } : p)
+    );
+
+    setIsUpdatingProducts(true);
+    try {
+      // 2. ส่งข้อมูลไปที่ Google Sheets
+      const updatedProduct = { ...product, isAvailable: newStatus };
+      await googleSheetsApi.updateProduct(updatedProduct);
+      showSuccess(newStatus ? 'เปิดการขายสินค้าแล้ว' : 'ตั้งค่าเป็นสินค้าหมดแล้ว');
+    } catch (error) {
+      console.error('Failed to toggle availability:', error);
+      alert('ไม่สามารถเปลี่ยนสถานะสินค้าได้: ' + error.message);
+      setProducts(oldProducts); // Rollback
     } finally {
       setIsUpdatingProducts(false);
       fetchData(false);
@@ -444,8 +501,10 @@ function App() {
             <AdminDashboard
               orders={todayOrders}
               products={products}
+              settings={settings}
               onNavigate={navigateAdmin}
               onRefresh={() => fetchData(false)}
+              onToggleShop={handleToggleShopOpen}
               isRefreshing={isRefreshing}
             />
           )}
@@ -463,6 +522,7 @@ function App() {
               onAdd={handleAddProduct}
               onEdit={handleEditProduct}
               onDelete={handleDeleteProduct}
+              onToggleAvailability={handleToggleAvailability}
               onBack={() => setAdminView('dashboard')}
               isUpdating={isUpdatingProducts}
             />

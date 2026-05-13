@@ -10,7 +10,8 @@ function ProductForm({ product, onSave, onCancel }) {
     priceL: '',
     category: 'pizza',
     description: '',
-    image: ''
+    image: '',
+    isAvailable: true
   });
   const [previewImage, setPreviewImage] = useState(null);
   const [imageFile, setImageFile] = useState(null);
@@ -24,7 +25,8 @@ function ProductForm({ product, onSave, onCancel }) {
         priceL: product.priceL || '',
         category: product.category || 'pizza',
         description: product.description || '',
-        image: product.image || ''
+        image: product.image || '',
+        isAvailable: product.isAvailable !== undefined ? product.isAvailable : true
       });
       setPreviewImage(product.image || null);
     }
@@ -239,6 +241,20 @@ function ProductForm({ product, onSave, onCancel }) {
               className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none resize-none"
               placeholder="คำอธิบายสินค้า..."
             />
+          </div>
+
+          {/* สถานะความพร้อมขาย */}
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
+            <input
+              type="checkbox"
+              id="isAvailable"
+              checked={formData.isAvailable}
+              onChange={(e) => setFormData({ ...formData, isAvailable: e.target.checked })}
+              className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            />
+            <label htmlFor="isAvailable" className="text-sm font-medium text-gray-700 cursor-pointer">
+              สินค้าพร้อมจำหน่าย (ถ้าสินค้าหมดให้ติ๊กออก)
+            </label>
           </div>
 
           {/* ปุ่ม */}

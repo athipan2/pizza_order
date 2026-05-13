@@ -7,7 +7,8 @@ export const initialMenuItems = [
     priceL: 499,
     category: "pizza",
     description: "แฮม สับปะรด ชีส mozzarella",
-    image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400"
+    image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400",
+    isAvailable: true
   },
   {
     id: "2",
@@ -17,7 +18,8 @@ export const initialMenuItems = [
     priceL: 549,
     category: "pizza",
     description: "กุ้ง ปู ปลาหมึก ชีส mozzarella",
-    image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400"
+    image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400",
+    isAvailable: true
   },
   {
     id: "3",
@@ -27,7 +29,8 @@ export const initialMenuItems = [
     priceL: 479,
     category: "pizza",
     description: "พีเปอร์โรนี ชีส mozzarella",
-    image: "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400"
+    image: "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400",
+    isAvailable: true
   },
   {
     id: "4",
@@ -35,7 +38,8 @@ export const initialMenuItems = [
     price: 79,
     category: "sontam",
     description: "ส้มตำรสชาติจัดจ้าน ถั่วฝักยาว มะเขือเทศ",
-    image: "https://images.unsplash.com/photo-1563275605-550b94dbb6f4?w=400"
+    image: "https://images.unsplash.com/photo-1563275605-550b94dbb6f4?w=400",
+    isAvailable: true
   },
   {
     id: "5",
@@ -43,7 +47,8 @@ export const initialMenuItems = [
     price: 89,
     category: "sontam",
     description: "ปูสด ปลาร้า รสแซ่บ",
-    image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400"
+    image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400",
+    isAvailable: true
   },
   {
     id: "6",
@@ -51,7 +56,8 @@ export const initialMenuItems = [
     price: 85,
     category: "sontam",
     description: "หมูยอแน่นๆ รสเด็ด",
-    image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400"
+    image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400",
+    isAvailable: true
   },
   {
     id: "7",
@@ -59,7 +65,8 @@ export const initialMenuItems = [
     price: 20,
     category: "sontam",
     description: "ไข่ต้มสดๆ คู่กับส้มตำ",
-    image: "https://images.unsplash.com/photo-1511426420268-4a7a9d7d8cbf?w=400"
+    image: "https://images.unsplash.com/photo-1511426420268-4a7a9d7d8cbf?w=400",
+    isAvailable: true
   },
   {
     id: "8",
@@ -67,7 +74,8 @@ export const initialMenuItems = [
     price: 25,
     category: "drink",
     description: "โค้ก เป๊ปซี่ แฟนต้า",
-    image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400"
+    image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400",
+    isAvailable: true
   },
   {
     id: "9",
@@ -75,7 +83,8 @@ export const initialMenuItems = [
     price: 15,
     category: "drink",
     description: "น้ำดื่มสะอาด",
-    image: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=400"
+    image: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=400",
+    isAvailable: true
   },
   {
     id: "10",
@@ -83,7 +92,8 @@ export const initialMenuItems = [
     price: 40,
     category: "drink",
     description: "ชารสเข้มข้น หวานมัน",
-    image: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400"
+    image: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400",
+    isAvailable: true
   }
 ];
 

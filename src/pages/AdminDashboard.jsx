@@ -8,11 +8,14 @@ import {
   Clock,
   BarChart3,
   RefreshCw,
-  MapPin
+  MapPin,
+  Store,
+  Power,
+  AlertTriangle
 } from 'lucide-react';
 import { OrderStatus } from '../types';
 
-function AdminDashboard({ orders, products, onNavigate, onRefresh, isRefreshing }) {
+function AdminDashboard({ orders, products, settings, onNavigate, onRefresh, onToggleShop, isRefreshing }) {
   // คำนวณสถิติ
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
   const totalOrders = orders.length;
@@ -121,6 +124,58 @@ function AdminDashboard({ orders, products, onNavigate, onRefresh, isRefreshing 
       </header>
 
       <main className="max-w-6xl mx-auto p-4 space-y-6">
+        {/* Shop Status Control */}
+        <div className={`rounded-2xl p-4 sm:p-6 shadow-sm border-2 transition-all ${
+          settings.isShopOpen
+            ? 'bg-white border-green-100'
+            : 'bg-red-50 border-red-100'
+        }`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className={`p-3 rounded-2xl ${
+                settings.isShopOpen ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+              }`}>
+                <Store size={32} />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  สถานะร้านค้า:
+                  <span className={settings.isShopOpen ? 'text-green-600' : 'text-red-600'}>
+                    {settings.isShopOpen ? 'เปิดให้บริการ' : 'ปิดร้านชั่วคราว'}
+                  </span>
+                </h2>
+                <p className="text-sm text-gray-500">
+                  {settings.isShopOpen
+                    ? 'ลูกค้าสามารถเลือกดูเมนูและสั่งอาหารได้ตามปกติ'
+                    : 'ลูกค้าจะเห็นป้ายแจ้งเตือนร้านปิดและไม่สามารถสั่งอาหารได้'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                if (window.confirm(`ต้องการ${settings.isShopOpen ? 'ปิดร้าน' : 'เปิดร้าน'}ใช่หรือไม่?`)) {
+                  onToggleShop();
+                }
+              }}
+              disabled={isRefreshing}
+              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all shadow-md active:scale-95 disabled:opacity-50 ${
+                settings.isShopOpen
+                  ? 'bg-red-500 hover:bg-red-600 text-white'
+                  : 'bg-green-500 hover:bg-green-600 text-white'
+              }`}
+            >
+              <Power size={20} />
+              {settings.isShopOpen ? 'กดเพื่อปิดร้าน' : 'กดเพื่อเปิดร้าน'}
+            </button>
+          </div>
+          {!settings.isShopOpen && (
+            <div className="mt-4 flex items-center gap-2 text-red-700 bg-red-100/50 p-3 rounded-lg text-sm border border-red-200">
+              <AlertTriangle size={16} />
+              <span>ขณะนี้ระบบถูกตั้งค่าเป็นปิดร้าน ลูกค้าจะไม่สามารถทำรายการสั่งซื้อได้</span>
+            </div>
+          )}
+        </div>
+
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, index) => (
