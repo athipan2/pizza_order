@@ -38,7 +38,8 @@ function App() {
     bankName: '',
     accountNumber: '',
     accountHolder: '',
-    qrCode: ''
+    qrCode: '',
+    isShopOpen: true
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -95,6 +96,7 @@ function App() {
             let category = p.category || '';
             let description = p.description ? p.description.toString() : '';
             let image = p.image || '';
+            let isAvailable = p.isAvailable === undefined ? true : (p.isAvailable === true || p.isAvailable === 'TRUE' || p.isAvailable === 'true');
 
             // --- ระบบกู้คืนข้อมูลกรณีลำดับคอลัมน์เยื้อง (Self-healing logic) ---
             const validCategories = ['pizza', 'sontam', 'drink', 'others'];
@@ -134,7 +136,8 @@ function App() {
               priceL,
               category,
               description,
-                image: formatDriveUrl(image)
+                image: formatDriveUrl(image),
+                isAvailable
               };
             });
             setProducts(sanitizedProducts);
@@ -149,7 +152,8 @@ function App() {
           bankName: sData.bankName || '',
           accountNumber: sData.accountNumber || '',
           accountHolder: sData.accountHolder || '',
-          qrCode: formatDriveUrl(sData.qrCode || '')
+          qrCode: formatDriveUrl(sData.qrCode || ''),
+          isShopOpen: sData.isShopOpen === undefined ? true : (sData.isShopOpen === true || sData.isShopOpen === 'TRUE' || sData.isShopOpen === 'true')
         });
       }
 
@@ -357,6 +361,11 @@ function App() {
     }
   };
 
+  const handleToggleShopOpen = async () => {
+    const newSettings = { ...settings, isShopOpen: !settings.isShopOpen };
+    await handleUpdateSettings(newSettings);
+  };
+
   const handleUpdateSettings = async (newSettings) => {
     const oldSettings = { ...settings };
     setIsUpdatingProducts(true); // Reuse product updating state or add new one
@@ -372,6 +381,14 @@ function App() {
       setIsUpdatingProducts(false);
       fetchData(false);
     }
+  };
+
+  const handleToggleAvailability = async (productId) => {
+    const product = products.find(p => p.id.toString() === productId.toString());
+    if (!product) return;
+
+    const updatedProduct = { ...product, isAvailable: !product.isAvailable };
+    await handleEditProduct(updatedProduct);
   };
 
   const handleDeleteProduct = async (productId) => {
@@ -444,8 +461,10 @@ function App() {
             <AdminDashboard
               orders={todayOrders}
               products={products}
+              settings={settings}
               onNavigate={navigateAdmin}
               onRefresh={() => fetchData(false)}
+              onToggleShop={handleToggleShopOpen}
               isRefreshing={isRefreshing}
             />
           )}
@@ -463,6 +482,7 @@ function App() {
               onAdd={handleAddProduct}
               onEdit={handleEditProduct}
               onDelete={handleDeleteProduct}
+              onToggleAvailability={handleToggleAvailability}
               onBack={() => setAdminView('dashboard')}
               isUpdating={isUpdatingProducts}
             />

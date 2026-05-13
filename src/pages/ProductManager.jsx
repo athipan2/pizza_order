@@ -4,7 +4,7 @@ import { categories } from '../data/menu';
 import ProductCard from '../components/admin/ProductCard';
 import ProductForm from '../components/admin/ProductForm';
 
-function ProductManager({ products, onAdd, onEdit, onDelete, onBack, isUpdating }) {
+function ProductManager({ products, onAdd, onEdit, onDelete, onToggleAvailability, onBack, isUpdating }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showForm, setShowForm] = useState(false);
@@ -195,6 +195,7 @@ function ProductManager({ products, onAdd, onEdit, onDelete, onBack, isUpdating 
                 product={product}
                 onEdit={handleEdit}
                 onDelete={onDelete}
+                onToggleAvailability={onToggleAvailability}
               />
             ))}
           </div>

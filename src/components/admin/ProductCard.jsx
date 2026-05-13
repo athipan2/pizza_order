@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Edit2, Trash2, Image as ImageIcon, Maximize2 } from 'lucide-react';
+import { Edit2, Trash2, Image as ImageIcon, Maximize2, Ban, CheckCircle2 } from 'lucide-react';
 import ImageModal from '../ImageModal';
 
-function ProductCard({ product, onEdit, onDelete }) {
+function ProductCard({ product, onEdit, onDelete, onToggleAvailability }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const handleDelete = () => {
     if (window.confirm(`ต้องการลบ "${product.name}" ใช่หรือไม่?`)) {
@@ -44,7 +44,7 @@ function ProductCard({ product, onEdit, onDelete }) {
         </div>
 
         {/* Badge หมวดหมู่ */}
-        <div className="absolute top-2 left-2">
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
           <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
             product.category === 'pizza' ? 'bg-orange-100 text-orange-700' :
             product.category === 'sontam' ? 'bg-green-100 text-green-700' :
@@ -56,6 +56,11 @@ function ProductCard({ product, onEdit, onDelete }) {
             {product.category === 'drink' && '🥤 เครื่องดื่ม'}
             {product.category === 'others' && '📦 อื่นๆ'}
           </span>
+          {!product.isAvailable && (
+            <span className="px-2 py-1 bg-red-500 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm flex items-center gap-1">
+              <Ban size={10} /> หมดแล้ว
+            </span>
+          )}
         </div>
       </div>
 
@@ -67,6 +72,17 @@ function ProductCard({ product, onEdit, onDelete }) {
         <div className="flex items-center justify-between">
           <span className="text-lg font-bold text-primary-600">฿{product.price}</span>
           <div className="flex gap-1">
+            <button
+              onClick={() => onToggleAvailability(product.id)}
+              className={`p-2.5 sm:p-2 rounded-lg transition-colors min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center ${
+                product.isAvailable
+                ? 'text-orange-600 active:bg-orange-50'
+                : 'text-green-600 active:bg-green-50'
+              }`}
+              title={product.isAvailable ? "ทำเครื่องหมายว่าหมด" : "ทำเครื่องหมายว่าพร้อมขาย"}
+            >
+              {product.isAvailable ? <Ban size={20} className="sm:w-[18px] sm:h-[18px]" /> : <CheckCircle2 size={20} className="sm:w-[18px] sm:h-[18px]" />}
+            </button>
             <button
               onClick={() => onEdit(product)}
               className="p-2.5 sm:p-2 text-blue-600 active:bg-blue-50 rounded-lg transition-colors min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"

@@ -20,7 +20,8 @@ export const googleSheetsApi = {
         body: JSON.stringify({
           action: 'addProduct',
           ...product,
-          id: product.id.toString()
+          id: product.id.toString(),
+          isAvailable: product.isAvailable !== undefined ? product.isAvailable : true
         }),
       });
       if (!response.ok) throw new Error('Network response was not ok');
@@ -41,7 +42,8 @@ export const googleSheetsApi = {
         body: JSON.stringify({
           action: 'updateProduct',
           ...product,
-          id: product.id.toString()
+          id: product.id.toString(),
+          isAvailable: product.isAvailable !== undefined ? product.isAvailable : true
         }),
       });
       if (!response.ok) throw new Error('Network response was not ok');
@@ -146,7 +148,8 @@ export const googleSheetsApi = {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'updateSettings',
-          ...settings
+          ...settings,
+          isShopOpen: settings.isShopOpen !== undefined ? settings.isShopOpen : true
         }),
       });
       if (!response.ok) throw new Error('Network response was not ok');

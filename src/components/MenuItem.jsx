@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Minus, Image as ImageIcon, ShoppingCart, Maximize2 } from 'lucide-react';
+import { Plus, Minus, Image as ImageIcon, ShoppingCart, Maximize2, Ban } from 'lucide-react';
 import ImageModal from './ImageModal';
 
 function MenuItem({ item, onAdd }) {
@@ -37,8 +37,15 @@ function MenuItem({ item, onAdd }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-primary-100 active:shadow-md transition-shadow">
-      <div className="flex items-start gap-3">
+    <div className={`bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-primary-100 transition-all ${!item.isAvailable ? 'opacity-75 grayscale-[0.5]' : 'active:shadow-md'}`}>
+      <div className="flex items-start gap-3 relative">
+        {!item.isAvailable && (
+          <div className="absolute top-0 right-0 z-[5]">
+            <span className="bg-red-500 text-white text-[10px] sm:text-xs font-bold px-2 py-1 rounded-lg shadow-md animate-pulse">
+              หมดแล้ว
+            </span>
+          </div>
+        )}
         <div
           className="w-16 h-16 sm:w-20 sm:h-20 bg-primary-50 rounded-xl p-1 flex-shrink-0 overflow-hidden flex items-center justify-center relative group cursor-pointer"
           onClick={() => item.image && !isEmoji && setIsModalOpen(true)}
@@ -134,11 +141,18 @@ function MenuItem({ item, onAdd }) {
               
               <button
                 onClick={handleAdd}
-                className="flex-1 bg-primary-500 active:bg-primary-600 text-white rounded-lg py-2.5 px-3 transition-colors flex items-center justify-center gap-1.5 min-h-[44px]"
-                aria-label="เพิ่มลงตะกร้า"
+                disabled={!item.isAvailable}
+                className={`flex-1 rounded-lg py-2.5 px-3 transition-colors flex items-center justify-center gap-1.5 min-h-[44px] ${
+                  item.isAvailable
+                    ? 'bg-primary-500 active:bg-primary-600 text-white'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+                aria-label={item.isAvailable ? "เพิ่มลงตะกร้า" : "สินค้าหมด"}
               >
-                <ShoppingCart size={18} />
-                <span className="text-sm font-medium">เพิ่ม {quantity} รายการ</span>
+                {item.isAvailable ? <ShoppingCart size={18} /> : <Ban size={18} />}
+                <span className="text-sm font-medium">
+                  {item.isAvailable ? `เพิ่ม ${quantity} รายการ` : 'สินค้าหมด'}
+                </span>
               </button>
             </div>
           </div>

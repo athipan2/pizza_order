@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShoppingCart, CheckCircle, Package, Home, ArrowLeft } from 'lucide-react';
+import { ShoppingCart, CheckCircle, Package, Home, ArrowLeft, Store, AlertCircle } from 'lucide-react';
 import { categories } from '../data/menu';
 import { OrderStatus } from '../types';
 import MenuItem from '../components/MenuItem';
@@ -77,6 +77,41 @@ function CustomerPage({ onAddOrder, products, orders, settings }) {
 
   return (
     <div className="min-h-screen pb-24">
+      {/* Shop Closed Overlay */}
+      {!settings.isShopOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-white/90 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl border border-red-100 overflow-hidden text-center animate-in zoom-in-95 duration-300">
+            <div className="bg-red-500 p-8 flex justify-center">
+              <div className="relative">
+                <Store size={80} className="text-white" />
+                <div className="absolute -bottom-2 -right-2 bg-white rounded-full p-2 shadow-lg">
+                  <AlertCircle size={24} className="text-red-500" />
+                </div>
+              </div>
+            </div>
+            <div className="p-8 space-y-4">
+              <h2 className="text-3xl font-black text-gray-900">ขออภัย ร้านปิดชั่วคราว</h2>
+              <p className="text-gray-600 leading-relaxed">
+                ขณะนี้ร้านยังไม่เปิดให้บริการหรือปิดรับออเดอร์ชั่วคราว
+                กรุณากลับมาตรวจสอบอีกครั้งในภายหลังครับ
+              </p>
+              <div className="pt-4">
+                <button
+                  onClick={() => window.location.reload()}
+                  className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-2xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                >
+                  <Package size={20} />
+                  รีเฟรชเพื่อตรวจสอบสถานะ
+                </button>
+              </div>
+            </div>
+            <div className="bg-gray-50 p-4 text-xs text-gray-400 font-medium">
+              ขออภัยในความไม่สะดวก
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-primary-500 text-white p-4 sticky top-0 z-10 shadow-md">
         <div className="max-w-4xl mx-auto">
