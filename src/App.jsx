@@ -98,7 +98,12 @@ function App() {
             let image = p.image || '';
             // ตรรกะตรวจสอบสถานะความพร้อมขาย (ค่าเริ่มต้นเป็น true ถ้าไม่มีข้อมูล)
             // รองรับกรณีชื่อคอลัมน์จาก Google Sheets เพี้ยน (คอลัมน์ที่ 9)
-            const rawAvailable = p.isAvailable !== undefined ? p.isAvailable : (p.column9 !== undefined ? p.column9 : p.COLUMN_I);
+            let rawAvailable = p.isAvailable;
+            if (rawAvailable === undefined) rawAvailable = p.column9;
+            if (rawAvailable === undefined) rawAvailable = p.COLUMN_I;
+            if (rawAvailable === undefined) rawAvailable = p.COLUMN_9;
+            if (rawAvailable === undefined) rawAvailable = p.column_9;
+
             let isAvailable = true;
             if (rawAvailable === false || rawAvailable === 'FALSE' || rawAvailable === 'false' || rawAvailable === 0 || rawAvailable === '0') {
               isAvailable = false;
@@ -390,11 +395,32 @@ function App() {
   };
 
   const handleToggleAvailability = async (productId) => {
-    const product = products.find(p => p.id.toString() === productId.toString());
+    const idStr = productId.toString();
+    const product = products.find(p => p.id.toString() === idStr);
     if (!product) return;
 
-    const updatedProduct = { ...product, isAvailable: !product.isAvailable };
-    await handleEditProduct(updatedProduct);
+    const newStatus = !product.isAvailable;
+    const oldProducts = [...products];
+
+    // 1. อัปเดต UI ทันที (Optimistic Update)
+    setProducts(prev =>
+      prev.map(p => p.id.toString() === idStr ? { ...p, isAvailable: newStatus } : p)
+    );
+
+    setIsUpdatingProducts(true);
+    try {
+      // 2. ส่งข้อมูลไปที่ Google Sheets
+      const updatedProduct = { ...product, isAvailable: newStatus };
+      await googleSheetsApi.updateProduct(updatedProduct);
+      showSuccess(newStatus ? 'เปิดการขายสินค้าแล้ว' : 'ตั้งค่าเป็นสินค้าหมดแล้ว');
+    } catch (error) {
+      console.error('Failed to toggle availability:', error);
+      alert('ไม่สามารถเปลี่ยนสถานะสินค้าได้: ' + error.message);
+      setProducts(oldProducts); // Rollback
+    } finally {
+      setIsUpdatingProducts(false);
+      fetchData(false);
+    }
   };
 
   const handleDeleteProduct = async (productId) => {
