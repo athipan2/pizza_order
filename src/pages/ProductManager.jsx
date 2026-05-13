@@ -81,7 +81,7 @@ function ProductManager({ products, onAdd, onEdit, onDelete, onToggleAvailabilit
 
       <main className="max-w-6xl mx-auto p-4">
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 sm:gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 mb-6">
           <div className="bg-white rounded-xl p-2 sm:p-4 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
               <div className="p-2 sm:p-3 bg-primary-100 rounded-lg w-fit">
@@ -132,7 +132,7 @@ function ProductManager({ products, onAdd, onEdit, onDelete, onToggleAvailabilit
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl p-2 sm:p-4 shadow-sm col-span-2 md:col-span-1">
+          <div className="bg-white rounded-xl p-2 sm:p-4 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
               <div className="p-2 sm:p-3 bg-gray-100 rounded-lg w-fit">
                 <span className="text-xl sm:text-2xl">📦</span>
@@ -141,6 +141,19 @@ function ProductManager({ products, onAdd, onEdit, onDelete, onToggleAvailabilit
                 <p className="text-xs sm:text-sm text-gray-500">อื่นๆ</p>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">
                   {products.filter(p => p.category === 'others').length}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl p-2 sm:p-4 shadow-sm col-span-2 md:col-span-1 border-2 border-red-50">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+              <div className="p-2 sm:p-3 bg-red-100 rounded-lg w-fit">
+                <span className="text-xl sm:text-2xl">🚫</span>
+              </div>
+              <div>
+                <p className="text-xs sm:text-sm text-red-600 font-medium">สินค้าหมด</p>
+                <p className="text-xl sm:text-2xl font-bold text-red-700">
+                  {products.filter(p => !p.isAvailable).length}
                 </p>
               </div>
             </div>

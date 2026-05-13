@@ -99,14 +99,22 @@ function App() {
             // ตรรกะตรวจสอบสถานะความพร้อมขาย (ค่าเริ่มต้นเป็น true ถ้าไม่มีข้อมูล)
             // รองรับกรณีชื่อคอลัมน์จาก Google Sheets เพี้ยน (คอลัมน์ที่ 9)
             let rawAvailable = p.isAvailable;
-            if (rawAvailable === undefined) rawAvailable = p.column9;
-            if (rawAvailable === undefined) rawAvailable = p.COLUMN_I;
-            if (rawAvailable === undefined) rawAvailable = p.COLUMN_9;
-            if (rawAvailable === undefined) rawAvailable = p.column_9;
+            // ตรวจสอบคอลัมน์ที่ 9 แบบครอบคลุมที่สุด (กรณี Header หายหรือ Sheets คืนค่าเป็นชื่อคอลัมน์)
+            const possibleKeys = ['isAvailable', 'column9', 'COLUMN_I', 'COLUMN_9', 'column_9', 'Column9'];
+            for (const key of possibleKeys) {
+              if (p[key] !== undefined) {
+                rawAvailable = p[key];
+                break;
+              }
+            }
 
             let isAvailable = true;
-            if (rawAvailable === false || rawAvailable === 'FALSE' || rawAvailable === 'false' || rawAvailable === 0 || rawAvailable === '0') {
-              isAvailable = false;
+            // ตรวจสอบค่าที่เป็น "เท็จ" ในทุกรูปแบบที่ Google Sheets อาจส่งมา
+            if (rawAvailable !== undefined) {
+              const strVal = String(rawAvailable).toLowerCase().trim();
+              if (strVal === 'false' || strVal === '0' || rawAvailable === false || rawAvailable === 0) {
+                isAvailable = false;
+              }
             }
 
             // --- ระบบกู้คืนข้อมูลกรณีลำดับคอลัมน์เยื้อง (Self-healing logic) ---

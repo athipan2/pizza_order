@@ -37,7 +37,11 @@ function MenuItem({ item, onAdd }) {
   };
 
   return (
-    <div className={`bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-primary-100 transition-all ${!item.isAvailable ? 'opacity-80' : 'active:shadow-md'}`}>
+    <div className={`bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-primary-100 transition-all relative overflow-hidden ${!item.isAvailable ? 'grayscale-[0.8] opacity-90' : 'active:shadow-md'}`}>
+      {!item.isAvailable && (
+        <div className="absolute inset-0 bg-black/5 z-[5] pointer-events-none" />
+      )}
+
       <div className="flex items-start gap-3 relative">
         <div
           className="w-16 h-16 sm:w-20 sm:h-20 bg-primary-50 rounded-xl p-1 flex-shrink-0 overflow-hidden flex items-center justify-center relative group cursor-pointer"
@@ -73,14 +77,17 @@ function MenuItem({ item, onAdd }) {
           </div>
 
           {!item.isAvailable && (
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10 backdrop-blur-[1px]">
-               <span className="bg-red-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded shadow-lg animate-pulse ring-1 ring-white">
-                หมดแล้ว
-              </span>
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10 backdrop-blur-[2px]">
+               <div className="flex flex-col items-center gap-1 scale-110 sm:scale-125">
+                 <Ban size={24} className="text-white drop-shadow-lg" />
+                 <span className="bg-red-600 text-white text-[12px] font-black px-2 py-0.5 rounded-full shadow-2xl ring-2 ring-white animate-pulse">
+                  หมดแล้ว
+                </span>
+               </div>
             </div>
           )}
         </div>
-        <div className={`flex-1 min-w-0 ${!item.isAvailable ? 'opacity-50' : ''}`}>
+        <div className={`flex-1 min-w-0 ${!item.isAvailable ? 'opacity-40' : ''}`}>
           <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{item.name}</h3>
           <p className="text-xs sm:text-sm text-gray-500 line-clamp-2 mt-0.5">{item.description}</p>
           
@@ -145,16 +152,16 @@ function MenuItem({ item, onAdd }) {
               <button
                 onClick={handleAdd}
                 disabled={!item.isAvailable}
-                className={`flex-1 rounded-lg py-2.5 px-3 transition-colors flex items-center justify-center gap-1.5 min-h-[44px] ${
+                className={`flex-1 rounded-lg py-2.5 px-3 transition-all flex items-center justify-center gap-1.5 min-h-[44px] ${
                   item.isAvailable
-                    ? 'bg-primary-500 active:bg-primary-600 text-white'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    ? 'bg-primary-500 active:bg-primary-600 text-white shadow-sm active:scale-95'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'
                 }`}
                 aria-label={item.isAvailable ? "เพิ่มลงตะกร้า" : "สินค้าหมด"}
               >
                 {item.isAvailable ? <ShoppingCart size={18} /> : <Ban size={18} />}
                 <span className="text-sm font-medium">
-                  {item.isAvailable ? `เพิ่ม ${quantity} รายการ` : 'สินค้าหมด'}
+                  {item.isAvailable ? `เพิ่ม ${quantity} รายการ` : 'ขณะนี้หมดชั่วคราว'}
                 </span>
               </button>
             </div>

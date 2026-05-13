@@ -234,9 +234,17 @@ function getSheetDataAsJson(sheet, parseCart = false) {
 
   return data.slice(1).map(row => {
     let obj = {};
-    // วนลูปตามจำนวนคอลัมน์ที่มีจริงในแถวนั้นๆ
-    row.forEach((cellValue, index) => {
-      const header = headers[index] || "column" + (index + 1);
+    // วนลูปตามหัวข้อที่กำหนดไว้ (Fixed Headers) เพื่อให้แน่ใจว่าข้อมูลครบทุกฟิลด์
+    headers.forEach((header, index) => {
+      let cellValue = row[index];
+
+      // จัดการค่าว่างให้เป็นค่าเริ่มต้นที่เหมาะสม
+      if (cellValue === undefined || cellValue === "") {
+        if (header === 'isAvailable' || header === 'isShopOpen') cellValue = true;
+        else if (header.startsWith('price')) cellValue = 0;
+        else cellValue = "";
+      }
+
       if (parseCart && header === 'cartItems') {
         try { obj[header] = JSON.parse(cellValue); } catch(e) { obj[header] = []; }
       } else {
