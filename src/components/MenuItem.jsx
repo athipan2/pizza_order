@@ -37,37 +37,32 @@ function MenuItem({ item, onAdd }) {
   };
 
   return (
-    <div className={`bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-primary-100 transition-all ${!item.isAvailable ? 'opacity-75 grayscale-[0.5]' : 'active:shadow-md'}`}>
+    <div className={`bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-primary-100 transition-all ${!item.isAvailable ? 'opacity-80' : 'active:shadow-md'}`}>
       <div className="flex items-start gap-3 relative">
-        {!item.isAvailable && (
-          <div className="absolute top-0 right-0 z-[5]">
-            <span className="bg-red-500 text-white text-[10px] sm:text-xs font-bold px-2 py-1 rounded-lg shadow-md animate-pulse">
-              หมดแล้ว
-            </span>
-          </div>
-        )}
         <div
           className="w-16 h-16 sm:w-20 sm:h-20 bg-primary-50 rounded-xl p-1 flex-shrink-0 overflow-hidden flex items-center justify-center relative group cursor-pointer"
-          onClick={() => item.image && !isEmoji && setIsModalOpen(true)}
+          onClick={() => item.image && !isEmoji && item.isAvailable && setIsModalOpen(true)}
         >
           {item.image && !isEmoji ? (
             <>
               <img
                 src={item.image}
                 alt={item.name}
-                className="w-full h-full object-cover rounded-lg"
+                className={`w-full h-full object-cover rounded-lg transition-all ${!item.isAvailable ? 'grayscale opacity-60' : ''}`}
                 onError={(e) => {
                   e.target.style.display = 'none';
                   e.target.parentElement.querySelector('.fallback-icon').style.display = 'flex';
                 }}
               />
-              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <Maximize2 size={20} className="text-white" />
-              </div>
+              {item.isAvailable && (
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Maximize2 size={20} className="text-white" />
+                </div>
+              )}
             </>
           ) : null}
           <div
-            className="fallback-icon w-full h-full flex items-center justify-center"
+            className={`fallback-icon w-full h-full flex items-center justify-center transition-all ${!item.isAvailable ? 'grayscale opacity-40' : ''}`}
             style={{ display: item.image && !isEmoji ? 'none' : 'flex' }}
           >
             {isEmoji ? (
@@ -76,8 +71,16 @@ function MenuItem({ item, onAdd }) {
               <ImageIcon size={28} className="text-primary-300 sm:w-8 sm:h-8" />
             )}
           </div>
+
+          {!item.isAvailable && (
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10 backdrop-blur-[1px]">
+               <span className="bg-red-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded shadow-lg animate-pulse ring-1 ring-white">
+                หมดแล้ว
+              </span>
+            </div>
+          )}
         </div>
-        <div className="flex-1 min-w-0">
+        <div className={`flex-1 min-w-0 ${!item.isAvailable ? 'opacity-50' : ''}`}>
           <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{item.name}</h3>
           <p className="text-xs sm:text-sm text-gray-500 line-clamp-2 mt-0.5">{item.description}</p>
           

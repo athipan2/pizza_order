@@ -97,8 +97,10 @@ function App() {
             let description = p.description ? p.description.toString() : '';
             let image = p.image || '';
             // ตรรกะตรวจสอบสถานะความพร้อมขาย (ค่าเริ่มต้นเป็น true ถ้าไม่มีข้อมูล)
+            // รองรับกรณีชื่อคอลัมน์จาก Google Sheets เพี้ยน (คอลัมน์ที่ 9)
+            const rawAvailable = p.isAvailable !== undefined ? p.isAvailable : (p.column9 !== undefined ? p.column9 : p.COLUMN_I);
             let isAvailable = true;
-            if (p.isAvailable === false || p.isAvailable === 'FALSE' || p.isAvailable === 'false') {
+            if (rawAvailable === false || rawAvailable === 'FALSE' || rawAvailable === 'false' || rawAvailable === 0 || rawAvailable === '0') {
               isAvailable = false;
             }
 
