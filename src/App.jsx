@@ -96,7 +96,11 @@ function App() {
             let category = p.category || '';
             let description = p.description ? p.description.toString() : '';
             let image = p.image || '';
-            let isAvailable = p.isAvailable === undefined ? true : (p.isAvailable === true || p.isAvailable === 'TRUE' || p.isAvailable === 'true');
+            // ตรรกะตรวจสอบสถานะความพร้อมขาย (ค่าเริ่มต้นเป็น true ถ้าไม่มีข้อมูล)
+            let isAvailable = true;
+            if (p.isAvailable === false || p.isAvailable === 'FALSE' || p.isAvailable === 'false') {
+              isAvailable = false;
+            }
 
             // --- ระบบกู้คืนข้อมูลกรณีลำดับคอลัมน์เยื้อง (Self-healing logic) ---
             const validCategories = ['pizza', 'sontam', 'drink', 'others'];
@@ -153,7 +157,7 @@ function App() {
           accountNumber: sData.accountNumber || '',
           accountHolder: sData.accountHolder || '',
           qrCode: formatDriveUrl(sData.qrCode || ''),
-          isShopOpen: sData.isShopOpen === undefined ? true : (sData.isShopOpen === true || sData.isShopOpen === 'TRUE' || sData.isShopOpen === 'true')
+          isShopOpen: (sData.isShopOpen === false || sData.isShopOpen === 'FALSE' || sData.isShopOpen === 'false') ? false : true
         });
       }
 
