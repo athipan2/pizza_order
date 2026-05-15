@@ -260,9 +260,15 @@ function CustomerPage({ onAddOrder, products, categories, orders, settings }) {
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-scale-in">
-                {filteredItems.map(item => (
-                  <MenuItem key={item.id} item={item} onAdd={addToCart} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {filteredItems.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className="stagger-item"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <MenuItem item={item} onAdd={addToCart} />
+                  </div>
                 ))}
               </div>
             )}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, Package, CheckCircle, Clock, Truck, ChefHat, CreditCard, BellRing, X, Cloud } from 'lucide-react';
 import { OrderStatus } from '../types';
+import EmptyState from './EmptyState';
 
 const Confetti = ({ count = 50 }) => {
   const colors = ['bg-red-400', 'bg-blue-400', 'bg-yellow-400', 'bg-green-400', 'bg-pink-400', 'bg-purple-400'];
@@ -371,16 +372,12 @@ function OrderTracker({ orders }) {
               })}
             </div>
           ) : (
-            <div className="p-8 text-center">
-              <div className="text-5xl mb-3">🔍</div>
-              <h3 className="font-semibold text-gray-700 mb-1">ไม่พบออเดอร์</h3>
-              <p className="text-sm text-gray-500">
-                ไม่พบออเดอร์ที่ใช้เบอร์โทรศัพท์นี้
-              </p>
-              <p className="text-xs text-gray-400 mt-2">
-                ตรวจสอบเบอร์โทรศัพท์อีกครั้งหรือติดต่อร้านค้า
-              </p>
-            </div>
+            <EmptyState
+              type="search"
+              title="ไม่พบออเดอร์"
+              description="ไม่พบออเดอร์ที่ใช้เบอร์โทรศัพท์นี้ ตรวจสอบเบอร์โทรศัพท์อีกครั้งหรือติดต่อร้านค้า"
+              className="py-12"
+            />
           )}
         </div>
       )}

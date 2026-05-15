@@ -1,13 +1,13 @@
 import { Minus, Plus, Trash2, Image as ImageIcon } from 'lucide-react';
+import EmptyState from './EmptyState';
 
 function Cart({ items, onUpdateQuantity, onRemove, total }) {
   if (items.length === 0) {
     return (
-      <div className="bg-white rounded-[2rem] p-10 shadow-sm border border-primary-100 text-center animate-scale-in">
-        <div className="text-6xl mb-4 animate-bounce">🛒</div>
-        <p className="text-gray-900 font-bold text-xl">ตะกร้าของคุณว่างเปล่าจ้า</p>
-        <p className="text-gray-500 mt-2">หิวแล้วใช่มั้ย? เลือกเมนูอร่อยๆ ใส่ตะกร้าได้เลย!</p>
-      </div>
+      <EmptyState
+        type="cart"
+        className="bg-white rounded-[2rem] shadow-sm border border-primary-100"
+      />
     );
   }
 
@@ -48,7 +48,7 @@ function Cart({ items, onUpdateQuantity, onRemove, total }) {
               <div className="flex items-center gap-1 sm:gap-2">
                 <button
                   onClick={() => onUpdateQuantity(item.id, -1, item.size)}
-                  className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center rounded-full bg-gray-100 active:bg-gray-200 text-gray-700 transition-colors disabled:opacity-50"
+                  className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center rounded-full bg-gray-100 active:scale-90 text-gray-700 transition-all disabled:opacity-50"
                   disabled={item.quantity <= 1}
                   aria-label="ลดจำนวน"
                 >
@@ -57,7 +57,7 @@ function Cart({ items, onUpdateQuantity, onRemove, total }) {
                 <span className="w-10 sm:w-8 text-center font-medium text-base sm:text-sm">{item.quantity}</span>
                 <button
                   onClick={() => onUpdateQuantity(item.id, 1, item.size)}
-                  className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center rounded-full bg-primary-100 active:bg-primary-200 text-primary-700 transition-colors"
+                  className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center rounded-full bg-primary-100 active:scale-90 text-primary-700 transition-all"
                   aria-label="เพิ่มจำนวน"
                 >
                   <Plus size={18} className="sm:w-4 sm:h-4" />

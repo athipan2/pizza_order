@@ -171,9 +171,9 @@ function MenuItem({ item, onAdd }) {
               <button
                 onClick={handleAdd}
                 disabled={!item.isAvailable || isFlying}
-                className={`flex-1 rounded-2xl py-2.5 px-3 transition-all flex items-center justify-center gap-1.5 min-h-[44px] relative ${
+                className={`flex-1 rounded-2xl py-2.5 px-3 transition-all flex items-center justify-center gap-1.5 min-h-[44px] relative active:scale-90 ${
                   item.isAvailable
-                    ? 'bg-primary-500 hover:bg-primary-600 text-white shadow-md active:scale-95'
+                    ? 'bg-primary-500 hover:bg-primary-600 text-white shadow-md'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'
                 } ${isFlying ? 'animate-fly-to-cart' : ''}`}
                 aria-label={item.isAvailable ? "เพิ่มลงตะกร้า" : "สินค้าหมด"}

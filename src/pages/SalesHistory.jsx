@@ -9,6 +9,7 @@ import {
   ChevronRight,
   RotateCcw
 } from 'lucide-react';
+import EmptyState from '../components/EmptyState';
 
 function SalesHistory({ orders, onBack }) {
   // จัดกลุ่มออเดอร์ตามวันที่
@@ -206,11 +207,12 @@ function SalesHistory({ orders, onBack }) {
 
         {/* รายการออเดอร์ของวันที่เลือก */}
         {currentDayData.orderCount === 0 ? (
-          <div className="bg-white rounded-xl p-8 text-center shadow-sm">
-            <Calendar size={48} className="mx-auto mb-3 text-gray-300" />
-            <p className="text-gray-500">ไม่มีออเดอร์ในวันนี้</p>
-            <p className="text-sm text-gray-400 mt-1">เลือกวันอื่นเพื่อดูยอดขาย</p>
-          </div>
+          <EmptyState
+            type="sales"
+            title="ไม่มีออเดอร์ในวันนี้"
+            description="เลือกวันอื่นเพื่อดูยอดขาย หรือรอลูกค้าสั่งซื้อในวันนี้ได้เลย!"
+            className="bg-white rounded-xl shadow-sm border border-gray-100 py-12"
+          />
         ) : (
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
             <div className="p-4 border-b border-gray-100">
