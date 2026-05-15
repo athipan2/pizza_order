@@ -78,51 +78,60 @@ function CustomerPage({ onAddOrder, products, categories, orders, settings }) {
     <div className="min-h-screen pb-24">
       {/* Shop Closed Overlay */}
       {!settings.isShopOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-white/90 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl border border-red-100 overflow-hidden text-center animate-in zoom-in-95 duration-300">
-            <div className="bg-red-500 p-8 flex justify-center">
-              <div className="relative">
-                <Store size={80} className="text-white" />
-                <div className="absolute -bottom-2 -right-2 bg-white rounded-full p-2 shadow-lg">
-                  <AlertCircle size={24} className="text-red-500" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-primary-900/40 backdrop-blur-md animate-in fade-in duration-500">
+          <div className="max-w-md w-full bg-white rounded-[3rem] shadow-2xl border-8 border-primary-100 overflow-hidden text-center animate-in zoom-in-90 duration-500">
+            <div className="bg-primary-500 p-12 flex justify-center relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+                 <div className="absolute top-4 left-4 rotate-12"><Store size={40} /></div>
+                 <div className="absolute bottom-4 right-4 -rotate-12"><Package size={40} /></div>
+              </div>
+              <div className="relative animate-bounce">
+                <Store size={100} className="text-white" />
+                <div className="absolute -bottom-2 -right-2 bg-white rounded-full p-3 shadow-xl">
+                  <AlertCircle size={32} className="text-primary-500" />
                 </div>
               </div>
             </div>
-            <div className="p-8 space-y-4">
-              <h2 className="text-3xl font-black text-gray-900">ขออภัย ร้านปิดชั่วคราว</h2>
-              <p className="text-gray-600 leading-relaxed">
-                ขณะนี้ร้านยังไม่เปิดให้บริการหรือปิดรับออเดอร์ชั่วคราว
-                กรุณากลับมาตรวจสอบอีกครั้งในภายหลังครับ
+            <div className="p-10 space-y-6">
+              <h2 className="text-4xl font-black text-gray-900 leading-tight">ขออภัยน้าาา<br/>ร้านปิดชั่วคราวครับ</h2>
+              <p className="text-gray-500 font-medium leading-relaxed text-lg">
+                ตอนนี้เชฟกำลังพักผ่อนหรือเตรียมวัตถุดิบอยู่ครับ<br/>
+                ลองแวะมาดูใหม่ภายหลังนะครับผม! 🥗🍕
               </p>
               <div className="pt-4">
                 <button
                   onClick={() => window.location.reload()}
-                  className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-2xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                  className="w-full py-5 bg-primary-500 hover:bg-primary-600 text-white font-black text-xl rounded-2xl transition-all shadow-[0_10px_30px_rgba(132,204,22,0.3)] active:scale-95 flex items-center justify-center gap-3"
                 >
-                  <Package size={20} />
-                  รีเฟรชเพื่อตรวจสอบสถานะ
+                  <Package size={24} />
+                  รีเฟรชเช็คสถานะร้าน
                 </button>
               </div>
             </div>
-            <div className="bg-gray-50 p-4 text-xs text-gray-400 font-medium">
-              ขออภัยในความไม่สะดวก
+            <div className="bg-primary-50 p-6 text-sm text-primary-400 font-bold">
+              อดใจรอแป๊บนึงนะ เดี๋ยวเราก็กลับมาเปิดแล้ว!
             </div>
           </div>
         </div>
       )}
 
       {/* Header */}
-      <header className="bg-primary-500 text-white p-4 sticky top-0 z-10 shadow-md">
+      <header className="bg-primary-500 text-white p-6 sticky top-0 z-[60] shadow-[0_10px_30px_rgba(132,204,22,0.2)] rounded-b-[2.5rem]">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold">🍽️ ร้านอาหารอร่อยใกล้บ้าน</h1>
-              <p className="text-sm text-primary-100">{activeTab === 'menu' ? 'พิซซ่า | ส้มตำ | เครื่องดื่ม | อื่นๆ' : 'ติดตามสถานะออเดอร์ของคุณ'}</p>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-3xl shadow-inner animate-float">
+                🥗
+              </div>
+              <div>
+                <h1 className="text-2xl font-black tracking-tight">อร่อยจัง<span className="text-primary-200">!</span></h1>
+                <p className="text-xs font-bold text-primary-100 uppercase tracking-widest">{activeTab === 'menu' ? 'Delicious Food Service' : 'Track Your Deliciousness'}</p>
+              </div>
             </div>
             {activeTab === 'menu' && (
               <button
                 onClick={() => setShowCart(!showCart)}
-                className="relative p-2 bg-primary-600 rounded-full hover:bg-primary-700 transition-colors"
+                className="relative p-2 bg-primary-600 rounded-full hover:bg-primary-700 transition-all hover:scale-110 active:scale-90 cart-button-target"
               >
                 <ShoppingCart size={24} />
                 {cart.length > 0 && (
@@ -137,37 +146,37 @@ function CustomerPage({ onAddOrder, products, categories, orders, settings }) {
       </header>
 
       {/* Tab Navigation */}
-      <div className="bg-white border-b border-gray-200 sticky top-[72px] z-10">
+      <div className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-[96px] z-50">
         <div className="max-w-4xl mx-auto flex">
           <button
             onClick={() => setActiveTab('menu')}
-            className={`flex-1 py-3 flex items-center justify-center gap-2 font-medium transition-colors ${
+            className={`flex-1 py-4 flex items-center justify-center gap-2 font-bold transition-all ${
               activeTab === 'menu'
-                ? 'text-primary-600 border-b-2 border-primary-500'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'text-primary-600 border-b-4 border-primary-500 bg-primary-50/50'
+                : 'text-gray-500 hover:text-primary-400 hover:bg-gray-50'
             }`}
           >
-            <Home size={20} />
+            <Home size={20} className={activeTab === 'menu' ? 'animate-bounce' : ''} />
             เมนูอาหาร
           </button>
           <button
             onClick={() => setActiveTab('tracking')}
-            className={`flex-1 py-3 flex items-center justify-center gap-2 font-medium transition-colors ${
+            className={`flex-1 py-4 flex items-center justify-center gap-2 font-bold transition-all ${
               activeTab === 'tracking'
-                ? 'text-primary-600 border-b-2 border-primary-500'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'text-primary-600 border-b-4 border-primary-500 bg-primary-50/50'
+                : 'text-gray-500 hover:text-primary-400 hover:bg-gray-50'
             }`}
           >
-            <Package size={20} />
+            <Package size={20} className={activeTab === 'tracking' ? 'animate-bounce' : ''} />
             ติดตามออเดอร์
           </button>
         </div>
       </div>
 
-      <main className="max-w-4xl mx-auto p-4">
+      <main className="max-w-4xl mx-auto p-4 min-h-[60vh]">
         {activeTab === 'tracking' ? (
           /* หน้าติดตามออเดอร์ */
-          <div className="space-y-4">
+          <div className="space-y-4 animate-scale-in">
             <button
               onClick={() => setActiveTab('menu')}
               className="flex items-center gap-2 text-gray-600 hover:text-primary-600 font-medium transition-colors"
@@ -181,13 +190,13 @@ function CustomerPage({ onAddOrder, products, categories, orders, settings }) {
           /* หน้าเมนู */
           <>
             {/* หมวดหมู่ */}
-            <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-4 px-4">
+            <div className="flex gap-3 overflow-x-auto pb-3 mb-6 -mx-4 px-4 scrollbar-hide">
               <button
                 onClick={() => setSelectedCategory('all')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+                className={`flex items-center gap-2 px-6 py-3 rounded-2xl whitespace-nowrap transition-all shadow-sm ${
                   selectedCategory === 'all'
-                    ? 'bg-primary-500 text-white'
-                    : 'bg-white text-gray-700 border border-gray-200 hover:border-primary-300'
+                    ? 'bg-primary-500 text-white scale-105 shadow-primary-200'
+                    : 'bg-white text-gray-700 border border-gray-200 hover:border-primary-300 hover:bg-primary-50'
                 }`}
               >
                 <span>🍽️</span>
@@ -197,10 +206,10 @@ function CustomerPage({ onAddOrder, products, categories, orders, settings }) {
                 <button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+                  className={`flex items-center gap-2 px-6 py-3 rounded-2xl whitespace-nowrap transition-all shadow-sm ${
                     selectedCategory === category.id
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-white text-gray-700 border border-gray-200 hover:border-primary-300'
+                      ? 'bg-primary-500 text-white scale-105 shadow-primary-200'
+                      : 'bg-white text-gray-700 border border-gray-200 hover:border-primary-300 hover:bg-primary-50'
                   }`}
                 >
                   <span>{category.icon}</span>
@@ -211,11 +220,11 @@ function CustomerPage({ onAddOrder, products, categories, orders, settings }) {
 
             {/* แสดงตะกร้า หรือ checkout หรือเมนู */}
             {showCheckout ? (
-              <div className="relative">
+              <div className="relative animate-scale-in">
                 {isSubmitting && (
-                  <div className="absolute inset-0 bg-white/50 z-20 flex flex-col items-center justify-center rounded-2xl">
-                    <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-                    <p className="text-primary-600 font-medium">กำลังส่งคำสั่งซื้อ...</p>
+                  <div className="absolute inset-0 bg-white/50 z-20 flex flex-col items-center justify-center rounded-[2rem] backdrop-blur-sm">
+                    <div className="w-16 h-16 border-8 border-primary-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p className="text-primary-700 font-black text-xl animate-bounce">กำลังส่งคำสั่งซื้อ...</p>
                   </div>
                 )}
                 <CheckoutForm
@@ -227,7 +236,7 @@ function CustomerPage({ onAddOrder, products, categories, orders, settings }) {
                 />
               </div>
             ) : showCart ? (
-              <div className="space-y-4">
+              <div className="space-y-6 animate-scale-in">
                 <button
                   onClick={() => setShowCart(false)}
                   className="flex items-center gap-2 text-gray-600 hover:text-primary-600 font-medium transition-colors"
@@ -251,7 +260,7 @@ function CustomerPage({ onAddOrder, products, categories, orders, settings }) {
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-scale-in">
                 {filteredItems.map(item => (
                   <MenuItem key={item.id} item={item} onAdd={addToCart} />
                 ))}
@@ -263,14 +272,16 @@ function CustomerPage({ onAddOrder, products, categories, orders, settings }) {
 
       {/* ปุ่มตะกร้าลอย */}
       {activeTab === 'menu' && !showCart && !showCheckout && cart.length > 0 && (
-        <div className="fixed bottom-20 left-4 right-4 max-w-4xl mx-auto">
+        <div className="fixed bottom-24 left-4 right-4 max-w-4xl mx-auto z-40 animate-bounce-subtle">
           <button
             onClick={() => setShowCart(true)}
-            className="w-full py-4 rounded-2xl bg-primary-500 text-white font-bold shadow-lg hover:bg-primary-600 transition-colors flex items-center justify-center gap-2"
+            className="w-full py-5 rounded-[2rem] bg-primary-500 text-white font-black text-lg shadow-[0_20px_50px_rgba(132,204,22,0.3)] hover:bg-primary-600 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 border-4 border-white"
           >
-            <ShoppingCart size={24} />
+            <div className="bg-white/20 p-2 rounded-full">
+              <ShoppingCart size={24} />
+            </div>
             ดูตะกร้า ({cart.reduce((sum, item) => sum + item.quantity, 0)} รายการ)
-            <span className="ml-2">฿{cartTotal}</span>
+            <span className="bg-white text-primary-600 px-3 py-1 rounded-full ml-2">฿{cartTotal}</span>
           </button>
         </div>
       )}
@@ -278,13 +289,22 @@ function CustomerPage({ onAddOrder, products, categories, orders, settings }) {
       {/* แจ้งเตือนสำเร็จ */}
       {showSuccess && (
         <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowSuccess(false)} />
-          <div className="bg-white rounded-2xl p-6 shadow-2xl relative z-10 text-center max-w-sm w-full">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="text-green-500" size={32} />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowSuccess(false)} />
+          <div className="bg-white rounded-[2.5rem] p-8 shadow-2xl relative z-10 text-center max-w-sm w-full animate-scale-in border-8 border-primary-100">
+            <div className="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+              <CheckCircle className="text-primary-600" size={48} />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">สั่งซื้อสำเร็จ!</h3>
-            <p className="text-gray-600">ขอบคุณสำหรับการสั่งซื้อ เราจะดำเนินการให้เร็วที่สุด</p>
+            <h3 className="text-2xl font-black text-gray-900 mb-3">สั่งซื้อสำเร็จแล้วจ้า!</h3>
+            <p className="text-gray-600 font-medium">ขอบคุณที่อุดหนุนนะครับ <br/>เราจะรีบทำอาหารให้ด่วนที่สุดเลย!</p>
+            <button
+               onClick={() => {
+                 setShowSuccess(false);
+                 setActiveTab('tracking');
+               }}
+               className="mt-6 w-full py-4 bg-primary-500 text-white font-bold rounded-2xl hover:bg-primary-600 transition-all active:scale-95"
+            >
+              ไปดูสถานะออเดอร์กันเลย
+            </button>
           </div>
         </div>
       )}

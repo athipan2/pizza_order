@@ -16,17 +16,17 @@ function ImageModal({ isOpen, image, title, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-10">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/90 backdrop-blur-sm animate-in fade-in duration-300"
+        className="absolute inset-0 bg-primary-950/80 backdrop-blur-xl animate-in fade-in duration-500"
         onClick={onClose}
       />
 
       {/* Modal Content */}
-      <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col items-center animate-in zoom-in-95 duration-300">
+      <div className="relative w-full max-w-5xl max-h-full flex flex-col items-center animate-in zoom-in-90 duration-500">
         {/* Header/Controls */}
-        <div className="absolute top-[-50px] right-0 flex items-center gap-2">
+        <div className="absolute top-[-60px] right-0 flex items-center gap-3 bg-white/10 backdrop-blur-md p-2 rounded-2xl border border-white/20">
           <button
             onClick={handleZoomOut}
             className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
@@ -59,16 +59,16 @@ function ImageModal({ isOpen, image, title, onClose }) {
 
         {/* Image Container */}
         <div
-          className="w-full h-full overflow-hidden flex items-center justify-center rounded-lg"
+          className="w-full h-full overflow-hidden flex items-center justify-center rounded-[3rem] border-8 border-white shadow-2xl bg-white/5"
           onClick={(e) => e.stopPropagation()}
         >
           <img
             src={image}
             alt={title}
-            className="max-w-full max-h-[80vh] object-contain transition-transform duration-200 cursor-grab active:cursor-grabbing"
+            className="max-w-full max-h-[70vh] object-contain transition-transform duration-300 cursor-zoom-in"
             style={{
               transform: `scale(${scale}) rotate(${rotation}deg)`,
-              transition: 'transform 0.2s ease-out'
+              filter: 'drop-shadow(0 20px 50px rgba(0,0,0,0.5))'
             }}
             onDoubleClick={handleReset}
           />
@@ -76,9 +76,13 @@ function ImageModal({ isOpen, image, title, onClose }) {
 
         {/* Caption */}
         {title && (
-          <div className="mt-4 text-white text-center">
-            <h3 className="text-lg font-bold">{title}</h3>
-            <p className="text-sm text-gray-400">ดับเบิลคลิกที่รูปเพื่อรีเซ็ตขนาด</p>
+          <div className="mt-6 text-white text-center animate-in slide-in-from-bottom-4 duration-500">
+            <h3 className="text-3xl font-black tracking-tight drop-shadow-lg">{title}</h3>
+            <div className="flex items-center justify-center gap-2 mt-2 opacity-60">
+               <span className="w-8 h-px bg-white/40"></span>
+               <p className="text-sm font-bold uppercase tracking-widest">Double Click to Reset</p>
+               <span className="w-8 h-px bg-white/40"></span>
+            </div>
           </div>
         )}
       </div>
