@@ -98,11 +98,16 @@ function AdminDashboard({ orders, products, settings, onNavigate, onRefresh, onT
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-primary-700 text-white p-4 sticky top-0 z-10 shadow-md">
+      <header className="bg-primary-600 text-white p-6 sticky top-0 z-10 shadow-lg rounded-b-[2rem]">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold">🧑‍💼 แดชบอร์ดแอดมิน</h1>
-            <p className="text-sm text-primary-200">ภาพรวมร้านอาหาร</p>
+          <div className="flex items-center gap-3">
+             <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-2xl">
+               👨‍🍳
+             </div>
+             <div>
+              <h1 className="text-2xl font-black">ระบบจัดการร้าน</h1>
+              <p className="text-xs font-bold text-primary-100 uppercase tracking-widest opacity-80">Admin Control Center</p>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <button
@@ -123,11 +128,11 @@ function AdminDashboard({ orders, products, settings, onNavigate, onRefresh, onT
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto p-4 space-y-6">
+      <main className="max-w-6xl mx-auto p-4 space-y-8 animate-scale-in">
         {/* Shop Status Control */}
-        <div className={`rounded-2xl p-4 sm:p-6 shadow-sm border-2 transition-all ${
+        <div className={`rounded-[2.5rem] p-6 sm:p-8 shadow-xl border-4 transition-all ${
           settings.isShopOpen
-            ? 'bg-white border-green-100'
+            ? 'bg-white border-primary-100'
             : 'bg-red-50 border-red-100'
         }`}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -177,9 +182,9 @@ function AdminDashboard({ orders, products, settings, onNavigate, onRefresh, onT
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, index) => (
-            <div key={index} className="bg-white rounded-xl p-4 shadow-sm">
+            <div key={index} className="bg-white rounded-[2rem] p-6 shadow-lg border-2 border-gray-50 hover:border-primary-200 hover:-translate-y-1 transition-all group">
               <div className="flex items-start justify-between">
                 <div className={`p-2 rounded-lg ${stat.color} bg-opacity-20`}>
                   <stat.icon className={`${stat.color.replace('bg-', 'text-')}`} size={24} />
@@ -196,12 +201,12 @@ function AdminDashboard({ orders, products, settings, onNavigate, onRefresh, onT
         </div>
 
         {/* Quick Links */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {quickLinks.map((link) => (
             <button
               key={link.id}
               onClick={() => onNavigate(link.id)}
-              className={`p-4 rounded-xl border-2 text-left hover:shadow-md transition-all ${link.color}`}
+              className={`p-6 rounded-[2rem] border-4 text-left shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all group ${link.color}`}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -215,10 +220,12 @@ function AdminDashboard({ orders, products, settings, onNavigate, onRefresh, onT
         </div>
 
         {/* Recent Orders */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="font-bold text-gray-900 flex items-center gap-2">
-              <Clock size={20} className="text-primary-500" />
+        <div className="bg-white rounded-[2.5rem] shadow-xl border-4 border-gray-50 overflow-hidden">
+          <div className="p-6 border-b-4 border-gray-50 flex items-center justify-between bg-gray-50/50">
+            <h2 className="text-xl font-black text-gray-900 flex items-center gap-3">
+              <div className="p-2 bg-primary-100 text-primary-600 rounded-xl">
+                <Clock size={24} />
+              </div>
               ออเดอร์ล่าสุด
             </h2>
             <button
@@ -288,7 +295,10 @@ function AdminDashboard({ orders, products, settings, onNavigate, onRefresh, onT
         </div>
 
         {/* Tips */}
-        <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl p-4 text-white">
+        <div className="bg-gradient-to-r from-primary-600 to-primary-800 rounded-[2rem] p-8 text-white shadow-xl relative overflow-hidden group">
+           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+             <Users size={120} />
+           </div>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/20 rounded-lg">
               <Users size={24} />

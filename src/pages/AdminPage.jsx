@@ -52,19 +52,19 @@ function AdminPage({ orders, onUpdateStatus, onBack, updatingOrders = new Set() 
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
-      <header className="bg-primary-700 text-white p-4 sticky top-0 z-10 shadow-md">
+      <header className="bg-primary-600 text-white p-6 sticky top-0 z-20 shadow-lg rounded-b-[2.5rem]">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <button
                 onClick={onBack}
-                className="p-2 bg-primary-600 rounded-full hover:bg-primary-500 transition-colors"
+                className="p-3 bg-white/20 backdrop-blur-md rounded-2xl hover:bg-white/30 transition-all active:scale-90"
               >
-                <ArrowLeft size={20} />
+                <ArrowLeft size={24} />
               </button>
               <div>
-                <h1 className="text-xl font-bold">🧑‍💼 หน้าจอแอดมิน</h1>
-                <p className="text-sm text-primary-200">จัดการออเดอร์ทั้งหมด</p>
+                <h1 className="text-2xl font-black tracking-tight">จัดการออเดอร์</h1>
+                <p className="text-xs font-bold text-primary-100 uppercase tracking-widest opacity-80">Order Management</p>
               </div>
             </div>
             <div className="text-right">
@@ -75,7 +75,7 @@ function AdminPage({ orders, onUpdateStatus, onBack, updatingOrders = new Set() 
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto p-4">
+      <main className="max-w-4xl mx-auto p-4 animate-scale-in">
         {orders.length === 0 ? (
           <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
             <div className="text-6xl mb-4">📭</div>
@@ -102,13 +102,13 @@ function AdminPage({ orders, onUpdateStatus, onBack, updatingOrders = new Set() 
 
                 <div className="space-y-4">
                   {group.items.map((order) => (
-                    <div key={order.id} className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+                    <div key={order.id} className="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border-4 border-gray-50 hover:border-primary-100 transition-all group">
                       {/* ส่วนหัวออเดอร์ */}
-                      <div className="p-4 border-b border-gray-100 bg-gray-50">
+                      <div className="p-6 border-b-4 border-gray-50 bg-gray-50/50">
                         <div className="flex items-center justify-between">
                           <div>
-                            <span className="text-sm text-gray-500 font-medium">ออเดอร์ #{order.id.toString().slice(-6)}</span>
-                            <p className="text-xs text-gray-400">
+                            <span className="text-xs font-black text-primary-600 uppercase tracking-widest">ออเดอร์ #{order.id.toString().slice(-6)}</span>
+                            <p className="text-lg font-bold text-gray-900 mt-1">
                               {new Date(order.createdAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.
                             </p>
                           </div>
@@ -119,12 +119,12 @@ function AdminPage({ orders, onUpdateStatus, onBack, updatingOrders = new Set() 
                                 กำลังบันทึก...
                               </div>
                             )}
-                            <div className="relative">
+                            <div className="relative group/select">
                               <select
                                 value={order.status}
                                 disabled={updatingOrders.has(order.id.toString())}
                                 onChange={(e) => onUpdateStatus(order.id, e.target.value)}
-                                className={`appearance-none px-3 py-1.5 rounded-lg font-medium text-sm pr-8 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                                className={`appearance-none px-4 py-2.5 rounded-2xl font-black text-sm pr-10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md active:scale-95 ${
                                   statusOptions.find(s => s.value === order.status)?.color || 'bg-gray-100 text-gray-700'
                                 }`}
                               >
@@ -194,7 +194,7 @@ function AdminPage({ orders, onUpdateStatus, onBack, updatingOrders = new Set() 
                       </div>
 
                       {/* รายการสินค้า */}
-                      <div className="p-4 border-b border-gray-100">
+                      <div className="p-6 border-b-4 border-gray-50 bg-white">
                         <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
                           🍽️ รายการสินค้า
                         </h4>
@@ -222,7 +222,7 @@ function AdminPage({ orders, onUpdateStatus, onBack, updatingOrders = new Set() 
                       </div>
 
                       {/* การชำระเงิน */}
-                      <div className="p-4 bg-primary-50">
+                      <div className="p-6 bg-primary-50/50">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-gray-600 text-sm font-medium">วิธีชำระเงิน</span>
                           <span className="font-semibold text-sm flex items-center gap-1 text-primary-700">
@@ -238,9 +238,9 @@ function AdminPage({ orders, onUpdateStatus, onBack, updatingOrders = new Set() 
                             <span className="text-primary-600 bg-white px-2 py-0.5 rounded border border-primary-200">{order.slipFile.name}</span>
                           </div>
                         )}
-                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-primary-200">
-                          <span className="font-semibold text-gray-700">ยอดรวม</span>
-                          <span className="text-xl font-bold text-primary-700">฿{order.total.toLocaleString()}</span>
+                        <div className="flex items-center justify-between mt-4 pt-4 border-t-2 border-primary-100">
+                          <span className="font-black text-gray-700 text-lg">ยอดรวมทั้งสิ้น</span>
+                          <span className="text-3xl font-black text-primary-700">฿{order.total.toLocaleString()}</span>
                         </div>
                       </div>
                     </div>

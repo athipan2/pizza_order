@@ -6,6 +6,7 @@ function MenuItem({ item, onAdd }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('S'); // S, M, L
+  const [isFlying, setIsFlying] = useState(false);
   const isEmoji = item.image && item.image.length <= 4;
   const isPizza = item.category === 'pizza';
 
@@ -18,14 +19,32 @@ function MenuItem({ item, onAdd }) {
 
   const currentPrice = getPrice();
 
-  const handleAdd = () => {
+  const handleAdd = (e) => {
+    // Start flying animation
+    setIsFlying(true);
+
+    // Calculate target position (approximate cart button position)
+    const cartBtn = document.querySelector('.cart-button-target');
+    if (cartBtn) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const cartRect = cartBtn.getBoundingClientRect();
+      const tx = cartRect.left - rect.left;
+      const ty = cartRect.top - rect.top;
+      e.currentTarget.style.setProperty('--target-x', `${tx}px`);
+      e.currentTarget.style.setProperty('--target-y', `${ty}px`);
+    }
+
     onAdd({
       ...item,
       price: currentPrice,
       size: isPizza ? selectedSize : null,
       addQuantity: quantity
     });
-    setQuantity(1); // reset กลับเป็น 1 หลังเพิ่ม
+
+    setTimeout(() => {
+      setIsFlying(false);
+      setQuantity(1); // reset กลับเป็น 1 หลังเพิ่ม
+    }, 800);
   };
 
   const decreaseQty = () => {
@@ -37,7 +56,7 @@ function MenuItem({ item, onAdd }) {
   };
 
   return (
-    <div className={`bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-primary-100 transition-all relative overflow-hidden ${!item.isAvailable ? 'grayscale-[0.8] opacity-90' : 'active:shadow-md'}`}>
+    <div className={`bg-white rounded-[2rem] p-3 sm:p-4 shadow-sm border border-primary-100 transition-all relative overflow-hidden group hover:shadow-xl hover:-translate-y-1 hover:border-primary-300 ${!item.isAvailable ? 'grayscale-[0.8] opacity-90' : ''}`}>
       {!item.isAvailable && (
         <div className="absolute inset-0 bg-black/5 z-[5] pointer-events-none" />
       )}
@@ -151,18 +170,27 @@ function MenuItem({ item, onAdd }) {
               
               <button
                 onClick={handleAdd}
-                disabled={!item.isAvailable}
-                className={`flex-1 rounded-lg py-2.5 px-3 transition-all flex items-center justify-center gap-1.5 min-h-[44px] ${
+                disabled={!item.isAvailable || isFlying}
+                className={`flex-1 rounded-2xl py-2.5 px-3 transition-all flex items-center justify-center gap-1.5 min-h-[44px] relative ${
                   item.isAvailable
-                    ? 'bg-primary-500 active:bg-primary-600 text-white shadow-sm active:scale-95'
+                    ? 'bg-primary-500 hover:bg-primary-600 text-white shadow-md active:scale-95'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'
-                }`}
+                } ${isFlying ? 'animate-fly-to-cart' : ''}`}
                 aria-label={item.isAvailable ? "เพิ่มลงตะกร้า" : "สินค้าหมด"}
               >
-                {item.isAvailable ? <ShoppingCart size={18} /> : <Ban size={18} />}
-                <span className="text-sm font-medium">
-                  {item.isAvailable ? `เพิ่ม ${quantity} รายการ` : 'ขณะนี้หมดชั่วคราว'}
-                </span>
+                {isFlying ? (
+                   <div className="flex items-center gap-1">
+                     <ShoppingCart size={18} className="animate-bounce" />
+                     <span className="text-sm font-bold">วุ้ววว!</span>
+                   </div>
+                ) : (
+                  <>
+                    {item.isAvailable ? <ShoppingCart size={18} /> : <Ban size={18} />}
+                    <span className="text-sm font-bold">
+                      {item.isAvailable ? `เพิ่ม ${quantity} รายการ` : 'ขณะนี้หมดชั่วคราว'}
+                    </span>
+                  </>
+                )}
               </button>
             </div>
           </div>

@@ -83,3 +83,47 @@ body {
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.hover-bounce:hover {
+  animation: bounce-subtle 0.5s ease-in-out infinite;
+}
+
+@keyframes scale-in {
+  0% { transform: scale(0.9); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes fly-to-cart {
+  0% { transform: scale(1) translate(0, 0); opacity: 1; }
+  50% { transform: scale(1.2) translate(0, -20px); opacity: 0.8; }
+  100% { transform: scale(0.2) translate(var(--target-x), var(--target-y)); opacity: 0; }
+}
+
+.animate-fly-to-cart {
+  animation: fly-to-cart 0.8s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+}
+
+/* Rounded Utilities */
+.rounded-playful {
+  @apply rounded-[2rem];
+}
+
+/* Custom Scrollbar for playful look */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-primary-50;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-primary-300 rounded-full hover:bg-primary-400;
+}

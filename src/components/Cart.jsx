@@ -3,16 +3,16 @@ import { Minus, Plus, Trash2, Image as ImageIcon } from 'lucide-react';
 function Cart({ items, onUpdateQuantity, onRemove, total }) {
   if (items.length === 0) {
     return (
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-primary-100 text-center">
-        <div className="text-4xl mb-2">🛒</div>
-        <p className="text-gray-500">ตะกร้าของคุณว่างเปล่า</p>
-        <p className="text-sm text-gray-400">เพิ่มเมนูอาหารที่ชอบเลย!</p>
+      <div className="bg-white rounded-[2rem] p-10 shadow-sm border border-primary-100 text-center animate-scale-in">
+        <div className="text-6xl mb-4 animate-bounce">🛒</div>
+        <p className="text-gray-900 font-bold text-xl">ตะกร้าของคุณว่างเปล่าจ้า</p>
+        <p className="text-gray-500 mt-2">หิวแล้วใช่มั้ย? เลือกเมนูอร่อยๆ ใส่ตะกร้าได้เลย!</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-primary-100 overflow-hidden">
+    <div className="bg-white rounded-[2rem] shadow-xl border-4 border-primary-100 overflow-hidden animate-scale-in">
       <div className="p-4 border-b border-primary-100">
         <h2 className="font-bold text-lg text-gray-900">ตะกร้าสินค้า</h2>
         <p className="text-sm text-gray-500">{items.length} รายการ</p>
@@ -20,7 +20,7 @@ function Cart({ items, onUpdateQuantity, onRemove, total }) {
       
       <div className="max-h-64 overflow-y-auto">
         {items.map((item, index) => (
-          <div key={`${item.id}-${item.size || index}`} className="p-4 border-b border-gray-100 last:border-b-0">
+          <div key={`${item.id}-${item.size || index}`} className="p-4 border-b border-gray-100 last:border-b-0 hover:bg-primary-50/30 transition-colors">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-primary-50 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                 {item.image && item.image.length > 4 ? (
@@ -79,10 +79,13 @@ function Cart({ items, onUpdateQuantity, onRemove, total }) {
         ))}
       </div>
       
-      <div className="p-4 bg-primary-50 border-t border-primary-100">
+      <div className="p-6 bg-primary-50 border-t-4 border-primary-100">
         <div className="flex items-center justify-between">
-          <span className="font-semibold text-gray-700">ราคารวมทั้งหมด</span>
-          <span className="text-xl font-bold text-primary-700">฿{total}</span>
+          <span className="font-black text-gray-700 text-lg">ราคารวมทั้งหมด</span>
+          <div className="text-right">
+            <span className="text-3xl font-black text-primary-700">฿{total}</span>
+            <p className="text-xs text-primary-600 font-bold">รวมภาษีมูลค่าเพิ่มแล้ว</p>
+          </div>
         </div>
       </div>
     </div>

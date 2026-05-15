@@ -87,7 +87,7 @@ function CheckoutForm({ cartItems, total, onSubmit, onCancel, settings }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-primary-200 overflow-hidden">
+    <div className="bg-white rounded-[2.5rem] shadow-2xl border-4 border-primary-100 overflow-hidden animate-scale-in">
       <button
         type="button"
         onClick={onCancel}
@@ -101,20 +101,38 @@ function CheckoutForm({ cartItems, total, onSubmit, onCancel, settings }) {
         <p className="text-sm text-gray-500">กรอกข้อมูลเพื่อดำเนินการสั่งซื้อ</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-4 space-y-4 sm:space-y-4">
+      <form onSubmit={handleSubmit} className="p-6 space-y-6">
         {/* ข้อมูลลูกค้า */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            ชื่อ-นามสกุล <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            required
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-4 py-3.5 sm:py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none text-base"
-            placeholder="กรอกชื่อ-นามสกุล"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">
+              ชื่อ-นามสกุล <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-4 py-3 rounded-2xl border-2 border-gray-100 focus:ring-4 focus:ring-primary-100 focus:border-primary-400 outline-none text-base transition-all bg-gray-50/50"
+              placeholder="กรอกชื่อของคุณ"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">
+              เบอร์โทรศัพท์ <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="tel"
+              required
+              pattern="[0-9]{10}"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              className="w-full px-4 py-3 rounded-2xl border-2 border-gray-100 focus:ring-4 focus:ring-primary-100 focus:border-primary-400 outline-none text-base transition-all bg-gray-50/50"
+              placeholder="08X-XXX-XXXX"
+              inputMode="numeric"
+            />
+          </div>
         </div>
 
         <div>
@@ -135,46 +153,48 @@ function CheckoutForm({ cartItems, total, onSubmit, onCancel, settings }) {
 
         {/* หมายเหตุ */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
-            <MessageSquare size={16} className="text-gray-400" />
+          <label className="block text-sm font-bold text-gray-700 mb-2 ml-1 flex items-center gap-1.5">
+            <MessageSquare size={16} className="text-primary-400" />
             หมายเหตุถึงร้านค้า (ถ้ามี)
           </label>
           <textarea
             rows={2}
             value={formData.remark}
             onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
-            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none text-sm resize-none"
-            placeholder="เช่น ไม่เผ็ดมาก, ตำป่าเอาพริก 3 เม็ด"
+            className="w-full px-4 py-3 rounded-2xl border-2 border-gray-100 focus:ring-4 focus:ring-primary-100 focus:border-primary-400 outline-none text-sm resize-none transition-all bg-gray-50/50"
+            placeholder="อยากบอกอะไรทางร้าน เขียนได้เลยจ้า เช่น ไม่เผ็ด, ขอซอสเยอะๆ"
           />
         </div>
 
         {/* วิธีรับสินค้า */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            วิธีรับสินค้า <span className="text-red-500">*</span>
+          <label className="block text-sm font-bold text-gray-700 mb-3 ml-1">
+            รับสินค้าแบบไหนดีครับ? <span className="text-red-500">*</span>
           </label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-4">
             <button
               type="button"
               onClick={() => setFormData({ ...formData, deliveryMethod: DeliveryMethod.DELIVERY })}
-              className={`p-4 sm:p-3 rounded-xl border-2 text-center transition-colors text-sm sm:text-base ${
+              className={`p-4 rounded-2xl border-4 text-center transition-all font-bold flex flex-col items-center gap-2 ${
                 formData.deliveryMethod === DeliveryMethod.DELIVERY
-                  ? 'border-primary-500 bg-primary-50 text-primary-700'
-                  : 'border-gray-200 text-gray-600 active:border-primary-300'
+                  ? 'border-primary-500 bg-primary-50 text-primary-700 scale-105'
+                  : 'border-gray-100 text-gray-500 hover:border-primary-200'
               }`}
             >
-              🚚 เดลิเวอรี่
+              <span className="text-3xl">🚚</span>
+              เดลิเวอรี่
             </button>
             <button
               type="button"
               onClick={() => setFormData({ ...formData, deliveryMethod: DeliveryMethod.PICKUP })}
-              className={`p-4 sm:p-3 rounded-xl border-2 text-center transition-colors text-sm sm:text-base ${
+              className={`p-4 rounded-2xl border-4 text-center transition-all font-bold flex flex-col items-center gap-2 ${
                 formData.deliveryMethod === DeliveryMethod.PICKUP
-                  ? 'border-primary-500 bg-primary-50 text-primary-700'
-                  : 'border-gray-200 text-gray-600 active:border-primary-300'
+                  ? 'border-primary-500 bg-primary-50 text-primary-700 scale-105'
+                  : 'border-gray-100 text-gray-500 hover:border-primary-200'
               }`}
             >
-              🏪 รับหน้าร้าน
+              <span className="text-3xl">🏪</span>
+              รับหน้าร้าน
             </button>
           </div>
         </div>
@@ -401,27 +421,27 @@ function CheckoutForm({ cartItems, total, onSubmit, onCancel, settings }) {
         )}
 
         {/* สรุปยอด */}
-        <div className="bg-primary-50 rounded-xl p-4">
+        <div className="bg-primary-600 rounded-[2rem] p-6 text-white shadow-lg shadow-primary-200">
           <div className="flex items-center justify-between">
-            <span className="font-semibold text-gray-700">ยอดชำระทั้งหมด</span>
-            <span className="text-2xl font-bold text-primary-700">฿{total}</span>
+            <span className="font-bold text-primary-100">ยอดชำระทั้งหมด</span>
+            <span className="text-3xl font-black">฿{total}</span>
           </div>
         </div>
 
         {/* ปุ่ม */}
-        <div className="flex gap-3">
+        <div className="flex gap-4 pt-2">
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 py-4 sm:py-3 rounded-xl border-2 border-gray-300 text-gray-700 font-medium active:bg-gray-50 transition-colors text-base"
+            className="flex-1 py-4 rounded-2xl border-2 border-gray-200 text-gray-500 font-bold hover:bg-gray-50 active:scale-95 transition-all"
           >
             ยกเลิก
           </button>
           <button
             type="submit"
-            className="flex-1 py-4 sm:py-3 rounded-xl bg-primary-500 text-white font-medium active:bg-primary-600 transition-colors text-base"
+            className="flex-[2] py-4 rounded-2xl bg-primary-500 text-white font-black text-lg shadow-lg shadow-primary-200 hover:bg-primary-600 active:scale-95 transition-all"
           >
-            ยืนยันการสั่งซื้อ
+            สั่งซื้อเลย!
           </button>
         </div>
       </form>
