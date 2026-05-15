@@ -6,8 +6,48 @@ function OrderTracker({ orders }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
-  const [notification, setNotification] = useState(null);
+  const [activeNotifications, setActiveNotifications] = useState([]);
   const previousStatuses = useRef({});
+  const speechInterval = useRef(null);
+
+  // ระบบเล่นเสียงแจ้งเตือนวนซ้ำ
+  useEffect(() => {
+    if (activeNotifications.length > 0) {
+      const playSpeech = () => {
+        if ('speechSynthesis' in window) {
+          // หยุดเสียงเก่าก่อน
+          window.speechSynthesis.cancel();
+
+          activeNotifications.forEach(order => {
+            const itemNames = order.cartItems.map(i => i.name).join(', ');
+            const utterance = new SpeechSynthesisUtterance(`ออเดอร์ ${itemNames} รอรับของได้เลย`);
+            utterance.lang = 'th-TH';
+            utterance.rate = 0.9;
+            window.speechSynthesis.speak(utterance);
+          });
+        }
+      };
+
+      // เล่นทันทีครั้งแรก
+      playSpeech();
+
+      // วนซ้ำทุก 5 วินาที
+      speechInterval.current = setInterval(playSpeech, 5000);
+    } else {
+      if (speechInterval.current) {
+        clearInterval(speechInterval.current);
+        speechInterval.current = null;
+      }
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    }
+
+    return () => {
+      if (speechInterval.current) clearInterval(speechInterval.current);
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    };
+  }, [activeNotifications]);
 
   // อัปเดตผลการค้นหาเมื่อข้อมูลออเดอร์จากเซิร์ฟเวอร์เปลี่ยน
   useEffect(() => {
@@ -25,7 +65,11 @@ function OrderTracker({ orders }) {
       foundOrders.forEach(order => {
         const prevStatus = previousStatuses.current[order.id];
         if (prevStatus && prevStatus !== order.status && order.status === OrderStatus.DELIVERED) {
-          triggerNotification(order);
+          // ตรวจสอบว่าไม่มีในรายการแจ้งเตือนเดิมอยู่แล้ว
+          setActiveNotifications(prev => {
+            if (prev.find(n => n.id === order.id)) return prev;
+            return [...prev, order];
+          });
         }
         previousStatuses.current[order.id] = order.status;
       });
@@ -33,21 +77,6 @@ function OrderTracker({ orders }) {
       setSearchResult(foundOrders);
     }
   }, [orders, hasSearched, searchQuery]);
-
-  const triggerNotification = (order) => {
-    // แสดง UI แจ้งเตือน
-    setNotification(`ออเดอร์ #${order.id.toString().slice(-6)} กำลังจัดส่ง`);
-
-    // เล่นเสียงแจ้งเตือน (Text-to-Speech)
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance('รอรับของได้เลย');
-      utterance.lang = 'th-TH';
-      window.speechSynthesis.speak(utterance);
-    }
-
-    // หายไปเองหลัง 10 วินาที
-    setTimeout(() => setNotification(null), 10000);
-  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -114,24 +143,34 @@ function OrderTracker({ orders }) {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-primary-100 overflow-hidden relative">
       {/* แจ้งเตือนสถานะ - ปรับเป็น fixed เพื่อให้เห็นชัดเจนทุกที่ */}
-      {notification && (
-        <div className="fixed top-4 left-4 right-4 z-[9999] animate-bounce max-w-md mx-auto">
-          <div className="bg-orange-500 text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between border-2 border-white">
-            <div className="flex items-center gap-3">
-              <div className="bg-white text-orange-500 p-2.5 rounded-full shadow-inner">
-                <BellRing size={24} className="animate-ring" />
+      {activeNotifications.length > 0 && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-orange-500 text-white p-6 rounded-3xl shadow-2xl max-w-md w-full border-4 border-white animate-in zoom-in-95 duration-300">
+            <div className="flex flex-col items-center text-center gap-4">
+              <div className="bg-white text-orange-500 p-5 rounded-full shadow-lg">
+                <BellRing size={48} className="animate-ring" />
               </div>
               <div>
-                <p className="font-bold text-lg leading-tight">รอรับของได้เลย!</p>
-                <p className="text-sm opacity-90">{notification}</p>
+                <h3 className="text-2xl font-black mb-1">อาหารมาส่งแล้ว!</h3>
+                <p className="text-orange-100 font-medium">กรุณาเตรียมรอรับสินค้า</p>
               </div>
+
+              <div className="w-full bg-white/20 rounded-2xl p-4 space-y-3">
+                {activeNotifications.map(order => (
+                  <div key={order.id} className="text-left border-b border-white/20 last:border-0 pb-2 last:pb-0">
+                    <p className="text-xs opacity-80">ออเดอร์ #{order.id.toString().slice(-6)}</p>
+                    <p className="font-bold">{order.cartItems.map(i => i.name).join(', ')}</p>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setActiveNotifications([])}
+                className="w-full py-4 bg-white text-orange-600 font-black text-xl rounded-2xl shadow-xl hover:bg-orange-50 active:scale-95 transition-all"
+              >
+                รับทราบ
+              </button>
             </div>
-            <button
-              onClick={() => setNotification(null)}
-              className="p-2 hover:bg-white/20 rounded-full transition-colors"
-            >
-              <X size={24} />
-            </button>
           </div>
         </div>
       )}
