@@ -18,7 +18,7 @@ function OrderTracker({ orders }) {
       const foundOrders = orders.filter(order => {
         const orderPhone = order.phone.toString().replace(/-/g, '');
         const normalizedOrderPhone = orderPhone.length === 9 ? '0' + orderPhone : orderPhone;
-        return normalizedOrderPhone === normalizedSearchPhone;
+        return normalizedOrderPhone === normalizedSearchPhone && order.status !== OrderStatus.COMPLETED;
       });
 
       // ตรวจสอบการเปลี่ยนสถานะเพื่อแจ้งเตือน
@@ -62,7 +62,7 @@ function OrderTracker({ orders }) {
       const normalizedOrderPhone = orderPhone.length === 9 ? '0' + orderPhone : orderPhone;
       const normalizedSearchPhone = searchPhone.length === 9 ? '0' + searchPhone : searchPhone;
 
-      return normalizedOrderPhone === normalizedSearchPhone;
+      return normalizedOrderPhone === normalizedSearchPhone && order.status !== OrderStatus.COMPLETED;
     });
     
     setSearchResult(foundOrders);
