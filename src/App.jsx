@@ -5,7 +5,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import ProductManager from './pages/ProductManager';
 import SalesHistory from './pages/SalesHistory';
 import ShopSettings from './pages/ShopSettings';
-import { initialMenuItems } from './data/menu';
+import { initialMenuItems, categories as initialCategories } from './data/menu';
 import { googleSheetsApi } from './utils/googleSheets';
 import { formatDriveUrl } from './utils/imageUtils';
 import { playNotificationSound, startNotificationLoop, stopNotificationLoop } from './utils/audio';
@@ -34,6 +34,7 @@ function App() {
   }, [orders]);
 
   const [products, setProducts] = useState(initialMenuItems);
+  const [categories, setCategories] = useState(initialCategories);
   const [settings, setSettings] = useState({
     bankName: '',
     accountNumber: '',
@@ -61,20 +62,23 @@ function App() {
     else setIsRefreshing(true);
 
     try {
-      // Use Promise.allSettled for settings to prevent blocking products/orders if it fails
-      const [productsRes, ordersRes, settingsRes] = await Promise.allSettled([
+      // Use Promise.allSettled for settings/categories to prevent blocking products/orders if they fail
+      const [productsRes, ordersRes, settingsRes, categoriesRes] = await Promise.allSettled([
         googleSheetsApi.getProducts(),
         googleSheetsApi.getOrders(),
-        googleSheetsApi.getSettings()
+        googleSheetsApi.getSettings(),
+        googleSheetsApi.getCategories()
       ]);
 
       const fetchedProducts = productsRes.status === 'fulfilled' ? productsRes.value : null;
       const fetchedOrders = ordersRes.status === 'fulfilled' ? ordersRes.value : null;
       const fetchedSettings = settingsRes.status === 'fulfilled' ? settingsRes.value : null;
+      const fetchedCategories = categoriesRes.status === 'fulfilled' ? categoriesRes.value : null;
 
       if (productsRes.status === 'rejected') console.error("Failed to fetch products:", productsRes.reason);
       if (ordersRes.status === 'rejected') console.error("Failed to fetch orders:", ordersRes.reason);
       if (settingsRes.status === 'rejected') console.warn("Failed to fetch settings:", settingsRes.reason);
+      if (categoriesRes.status === 'rejected') console.warn("Failed to fetch categories:", categoriesRes.reason);
 
       let hasError = false;
 
@@ -118,7 +122,15 @@ function App() {
             }
 
             // --- ระบบกู้คืนข้อมูลกรณีลำดับคอลัมน์เยื้อง (Self-healing logic) ---
-            const validCategories = ['pizza', 'sontam', 'drink', 'others'];
+            // ใช้ "Hybrid" categories: รวมจากที่ดึงมาได้ และค่ามาตรฐานเดิมเพื่อความปลอดภัย
+            const dynamicCategoryIds = Array.isArray(fetchedCategories)
+              ? fetchedCategories.map(c => c.id)
+              : (fetchedCategories?.data || []).map(c => c.id);
+
+            const validCategories = [...new Set([
+              ...dynamicCategoryIds,
+              'pizza', 'sontam', 'drink', 'others'
+            ])].filter(Boolean);
 
             // กรณีที่ 1: category ไปอยู่ในช่อง priceM (เยื้องเพราะใช้หัวตาราง 6 คอลัมน์ดั้งเดิม แต่ API ดึงแบบ 8 คอลัมน์)
             // โครงสร้างที่พบจริง: [id, name, price, category, description, image]
@@ -161,6 +173,14 @@ function App() {
             });
             setProducts(sanitizedProducts);
           }
+        }
+      }
+
+      // จัดการข้อมูลหมวดหมู่
+      if (fetchedCategories && fetchedCategories.status !== 'error') {
+        const cList = Array.isArray(fetchedCategories) ? fetchedCategories : (fetchedCategories.data || []);
+        if (Array.isArray(cList) && cList.length > 0) {
+          setCategories(cList);
         }
       }
 
@@ -380,6 +400,62 @@ function App() {
     }
   };
 
+  // จัดการหมวดหมู่
+  const handleAddCategory = async (category) => {
+    const oldCategories = [...categories];
+    setIsUpdatingProducts(true);
+    setCategories(prev => [...prev, category]);
+    try {
+      await googleSheetsApi.addCategory(category);
+      showSuccess('เพิ่มหมวดหมู่สำเร็จแล้ว');
+    } catch (error) {
+      console.error('Failed to add category:', error);
+      alert('ไม่สามารถเพิ่มหมวดหมู่ได้: ' + error.message);
+      setCategories(oldCategories);
+    } finally {
+      setIsUpdatingProducts(false);
+      fetchData(false);
+    }
+  };
+
+  const handleEditCategory = async (updatedCategory) => {
+    const oldCategories = [...categories];
+    setIsUpdatingProducts(true);
+    const catId = updatedCategory.id.toString();
+    setCategories(prev =>
+      prev.map(c => c.id.toString() === catId ? updatedCategory : c)
+    );
+    try {
+      await googleSheetsApi.updateCategory(updatedCategory);
+      showSuccess('แก้ไขหมวดหมู่สำเร็จแล้ว');
+    } catch (error) {
+      console.error('Failed to update category:', error);
+      alert('ไม่สามารถแก้ไขหมวดหมู่ได้: ' + error.message);
+      setCategories(oldCategories);
+    } finally {
+      setIsUpdatingProducts(false);
+      fetchData(false);
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId) => {
+    const oldCategories = [...categories];
+    setIsUpdatingProducts(true);
+    const idStr = categoryId.toString();
+    setCategories(prev => prev.filter(c => c.id.toString() !== idStr));
+    try {
+      await googleSheetsApi.deleteCategory(categoryId);
+      showSuccess('ลบหมวดหมู่สำเร็จแล้ว');
+    } catch (error) {
+      console.error('Failed to delete category:', error);
+      alert('ไม่สามารถลบหมวดหมู่ได้: ' + error.message);
+      setCategories(oldCategories);
+    } finally {
+      setIsUpdatingProducts(false);
+      fetchData(false);
+    }
+  };
+
   const handleToggleShopOpen = async () => {
     const newSettings = { ...settings, isShopOpen: !settings.isShopOpen };
     await handleUpdateSettings(newSettings);
@@ -492,6 +568,7 @@ function App() {
         <CustomerPage
           onAddOrder={handleAddOrder}
           products={products}
+          categories={categories}
           orders={orders}
           settings={settings}
         />
@@ -519,10 +596,14 @@ function App() {
           {adminView === 'products' && (
             <ProductManager
               products={products}
+              categories={categories}
               onAdd={handleAddProduct}
               onEdit={handleEditProduct}
               onDelete={handleDeleteProduct}
               onToggleAvailability={handleToggleAvailability}
+              onAddCategory={handleAddCategory}
+              onEditCategory={handleEditCategory}
+              onDeleteCategory={handleDeleteCategory}
               onBack={() => setAdminView('dashboard')}
               isUpdating={isUpdatingProducts}
             />

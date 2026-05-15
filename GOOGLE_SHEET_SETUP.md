@@ -42,6 +42,12 @@ function doGet(e) {
       return createJsonResponse(getSheetDataAsJson(sheet, true));
     }
 
+    if (action === 'getCategories') {
+      const sheet = ss.getSheetByName('Categories');
+      if (!sheet) return createJsonResponse({ status: "error", message: "ไม่พบแผ่นงาน Categories" });
+      return createJsonResponse(getSheetDataAsJson(sheet));
+    }
+
     if (action === 'getSettings') {
       const sheet = ss.getSheetByName('Settings');
       if (!sheet) {
@@ -132,6 +138,55 @@ function doPost(e) {
       return createJsonResponse({ status: found ? 'success' : 'error', message: found ? '' : 'Product not found' });
     }
 
+    if (action === 'addCategory') {
+      const sheet = ss.getSheetByName('Categories');
+      sheet.appendRow([
+        data.id,
+        data.name,
+        data.icon
+      ]);
+      SpreadsheetApp.flush();
+      return createJsonResponse({ status: 'success' });
+    }
+
+    if (action === 'updateCategory') {
+      const sheet = ss.getSheetByName('Categories');
+      const dataRange = sheet.getDataRange().getDisplayValues();
+      const targetId = data.id.toString().replace(/,/g, '');
+      let found = false;
+      for (let i = 1; i < dataRange.length; i++) {
+        const currentId = dataRange[i][0].toString().replace(/,/g, '');
+        if (currentId === targetId) {
+          sheet.getRange(i + 1, 1, 1, 3).setValues([[
+            data.id,
+            data.name,
+            data.icon
+          ]]);
+          found = true;
+          break;
+        }
+      }
+      SpreadsheetApp.flush();
+      return createJsonResponse({ status: found ? 'success' : 'error', message: found ? '' : 'Category not found' });
+    }
+
+    if (action === 'deleteCategory') {
+      const sheet = ss.getSheetByName('Categories');
+      const dataRange = sheet.getDataRange().getDisplayValues();
+      const targetId = data.id.toString().replace(/,/g, '');
+      let found = false;
+      for (let i = 1; i < dataRange.length; i++) {
+        const currentId = dataRange[i][0].toString().replace(/,/g, '');
+        if (currentId === targetId) {
+          sheet.deleteRow(i + 1);
+          found = true;
+          break;
+        }
+      }
+      SpreadsheetApp.flush();
+      return createJsonResponse({ status: found ? 'success' : 'error', message: found ? '' : 'Category not found' });
+    }
+
     if (action === 'addOrder') {
       const sheet = ss.getSheetByName('Orders');
       let slipUrl = data.slipFile;
@@ -214,6 +269,18 @@ function setupSheets(ss) {
   if (!sSheet) sSheet = ss.insertSheet('Settings');
   sSheet.getRange(1, 1, 1, 5).setValues([['bankName', 'accountNumber', 'accountHolder', 'qrCode', 'isShopOpen']]);
   sSheet.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#f3f3f3");
+
+  let cSheet = ss.getSheetByName('Categories');
+  if (!cSheet) {
+    cSheet = ss.insertSheet('Categories');
+    cSheet.getRange(1, 1, 1, 3).setValues([['id', 'name', 'icon']]);
+    cSheet.getRange(1, 1, 1, 3).setFontWeight("bold").setBackground("#f3f3f3");
+    // ใส่หมวดหมู่เริ่มต้น
+    cSheet.appendRow(['pizza', 'พิซซ่า', '🍕']);
+    cSheet.appendRow(['sontam', 'ส้มตำ', '🥗']);
+    cSheet.appendRow(['drink', 'เครื่องดื่ม', '🥤']);
+    cSheet.appendRow(['others', 'อื่นๆ', '📦']);
+  }
 }
 
 function getSheetDataAsJson(sheet, parseCart = false) {
@@ -230,6 +297,8 @@ function getSheetDataAsJson(sheet, parseCart = false) {
     headers = ['id', 'name', 'phone', 'address', 'deliveryMethod', 'paymentMethod', 'cartItems', 'total', 'status', 'createdAt', 'slipFile', 'location', 'remark'];
   } else if (sheetName === 'Settings') {
     headers = ['bankName', 'accountNumber', 'accountHolder', 'qrCode', 'isShopOpen'];
+  } else if (sheetName === 'Categories') {
+    headers = ['id', 'name', 'icon'];
   }
 
   return data.slice(1).map(row => {

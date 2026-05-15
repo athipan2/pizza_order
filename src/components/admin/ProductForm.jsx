@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Upload, Image as ImageIcon } from 'lucide-react';
-import { categoryOptions } from '../../data/menu';
 
-function ProductForm({ product, onSave, onCancel }) {
+function ProductForm({ product, categories, onSave, onCancel }) {
   const [formData, setFormData] = useState({
     name: '',
     price: '',
@@ -174,8 +173,8 @@ function ProductForm({ product, onSave, onCancel }) {
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none bg-white"
             >
-              {categoryOptions.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              {categories.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>
               ))}
             </select>
           </div>
