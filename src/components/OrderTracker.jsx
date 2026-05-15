@@ -1,6 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Package, CheckCircle, Clock, Truck, ChefHat, CreditCard, BellRing, X } from 'lucide-react';
+import { Search, Package, CheckCircle, Clock, Truck, ChefHat, CreditCard, BellRing, X, Cloud } from 'lucide-react';
 import { OrderStatus } from '../types';
+
+const Confetti = ({ count = 50 }) => {
+  const colors = ['bg-red-400', 'bg-blue-400', 'bg-yellow-400', 'bg-green-400', 'bg-pink-400', 'bg-purple-400'];
+  return (
+    <div className="fixed inset-0 pointer-events-none z-[10000] overflow-hidden">
+      {[...Array(count)].map((_, i) => (
+        <div
+          key={i}
+          className={`absolute w-2 h-2 rounded-full animate-confetti ${colors[i % colors.length]}`}
+          style={{
+            left: `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 3}s`,
+            animationDuration: `${2 + Math.random() * 2}s`
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
 function OrderTracker({ orders }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -108,13 +127,39 @@ function OrderTracker({ orders }) {
     return steps.indexOf(status);
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = (status, isCurrent) => {
     switch (status) {
-      case OrderStatus.PENDING_PAYMENT: return <CreditCard size={20} />;
-      case OrderStatus.PAID: return <CheckCircle size={20} />;
-      case OrderStatus.PREPARING: return <ChefHat size={20} />;
-      case OrderStatus.DELIVERED: return <Truck size={20} />;
-      case OrderStatus.COMPLETED: return <Package size={20} />;
+      case OrderStatus.PENDING_PAYMENT:
+        return <CreditCard size={20} className={isCurrent ? "animate-bounce" : ""} />;
+      case OrderStatus.PAID:
+        return <CheckCircle size={20} className={isCurrent ? "scale-110" : ""} />;
+      case OrderStatus.PREPARING:
+        return (
+          <div className="relative">
+            {isCurrent && (
+              <>
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-1 h-3 bg-white/40 rounded-full animate-steam" style={{ animationDelay: '0s' }} />
+                <div className="absolute -top-3 left-1/4 -translate-x-1/2 w-1 h-2 bg-white/30 rounded-full animate-steam" style={{ animationDelay: '0.5s' }} />
+                <div className="absolute -top-3 left-3/4 -translate-x-1/2 w-1 h-2 bg-white/30 rounded-full animate-steam" style={{ animationDelay: '1s' }} />
+              </>
+            )}
+            <ChefHat size={20} className={isCurrent ? "animate-float" : ""} />
+          </div>
+        );
+      case OrderStatus.DELIVERED:
+        return (
+          <div className="relative">
+            {isCurrent && (
+              <>
+                <Cloud size={10} className="absolute -top-2 -right-3 text-white/40 animate-cloud" style={{ animationDelay: '0s' }} />
+                <Cloud size={8} className="absolute top-1 -right-4 text-white/30 animate-cloud" style={{ animationDelay: '1.5s' }} />
+              </>
+            )}
+            <Truck size={20} className={isCurrent ? "animate-drive" : ""} />
+          </div>
+        );
+      case OrderStatus.COMPLETED:
+        return <Package size={20} className={isCurrent ? "animate-bounce" : ""} />;
       default: return <Clock size={20} />;
     }
   };
@@ -145,6 +190,7 @@ function OrderTracker({ orders }) {
       {/* แจ้งเตือนสถานะ - ปรับเป็น fixed เพื่อให้เห็นชัดเจนทุกที่ */}
       {activeNotifications.length > 0 && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-500">
+          <Confetti count={100} />
           <div className="bg-orange-500/90 backdrop-blur-xl text-white p-8 rounded-[40px] shadow-[0_32px_64px_-16px_rgba(251,146,60,0.5)] max-w-md w-full border border-white/30 animate-in zoom-in-95 duration-300">
             <div className="flex flex-col items-center text-center gap-6">
               <div className="bg-white text-orange-500 p-6 rounded-full shadow-[0_20px_40px_rgba(255,255,255,0.3)] border-4 border-orange-100">
@@ -269,8 +315,8 @@ function OrderTracker({ orders }) {
                               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 z-10 transition-all duration-700 shadow-sm ${
                                 isActive ? `${getStatusColor(step.status, true)} shadow-lg` : 'bg-gray-100 text-gray-300'
                               } ${isCurrent ? 'ring-8 ring-primary-500/10 scale-110' : ''}`}>
-                                <div className={isCurrent ? 'animate-pulse' : ''}>
-                                  {getStatusIcon(step.status)}
+                                <div>
+                                  {getStatusIcon(step.status, isCurrent)}
                                 </div>
                               </div>
                               <div className="flex-1 pt-0.5">
