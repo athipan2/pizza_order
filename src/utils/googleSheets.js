@@ -1,4 +1,4 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycbyBM-TA1cNR8fJ-1gRF4BlprjBPDIs4LgUgdo7Hv4aaMy1cRMze736A7nm8GKgjyMbk/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycby4epGBN36BvnCLk5SwjvGcdk3bshclNo1cH-Bgmi8EPjK2_0xgRHJfq9lTkuw-4KeP/exec';
 
 export const googleSheetsApi = {
   async getProducts() {
@@ -8,6 +8,77 @@ export const googleSheetsApi = {
       return await response.json();
     } catch (error) {
       console.error('Error fetching products:', error);
+      throw error;
+    }
+  },
+
+  async getCategories() {
+    try {
+      const response = await fetch(`${API_URL}?action=getCategories&_=${Date.now()}`);
+      if (!response.ok) throw new Error('Network response was not ok');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      throw error;
+    }
+  },
+
+  async addCategory(category) {
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'addCategory',
+          ...category
+        }),
+      });
+      if (!response.ok) throw new Error('Network response was not ok');
+      const result = await response.json();
+      if (result.status === 'error') throw new Error(result.message);
+      return result;
+    } catch (error) {
+      console.error('Error adding category:', error);
+      throw error;
+    }
+  },
+
+  async updateCategory(category) {
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'updateCategory',
+          ...category
+        }),
+      });
+      if (!response.ok) throw new Error('Network response was not ok');
+      const result = await response.json();
+      if (result.status === 'error') throw new Error(result.message);
+      return result;
+    } catch (error) {
+      console.error('Error updating category:', error);
+      throw error;
+    }
+  },
+
+  async deleteCategory(categoryId) {
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'deleteCategory',
+          id: categoryId.toString()
+        }),
+      });
+      if (!response.ok) throw new Error('Network response was not ok');
+      const result = await response.json();
+      if (result.status === 'error') throw new Error(result.message);
+      return result;
+    } catch (error) {
+      console.error('Error deleting category:', error);
       throw error;
     }
   },

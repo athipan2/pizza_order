@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { ShoppingCart, CheckCircle, Package, Home, ArrowLeft, Store, AlertCircle } from 'lucide-react';
-import { categories } from '../data/menu';
 import { OrderStatus } from '../types';
 import MenuItem from '../components/MenuItem';
 import Cart from '../components/Cart';
 import CheckoutForm from '../components/CheckoutForm';
 import OrderTracker from '../components/OrderTracker';
 
-function CustomerPage({ onAddOrder, products, orders, settings }) {
+function CustomerPage({ onAddOrder, products, categories, orders, settings }) {
   const menuItems = products;
   const [cart, setCart] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -183,6 +182,17 @@ function CustomerPage({ onAddOrder, products, orders, settings }) {
           <>
             {/* หมวดหมู่ */}
             <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-4 px-4">
+              <button
+                onClick={() => setSelectedCategory('all')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+                  selectedCategory === 'all'
+                    ? 'bg-primary-500 text-white'
+                    : 'bg-white text-gray-700 border border-gray-200 hover:border-primary-300'
+                }`}
+              >
+                <span>🍽️</span>
+                <span className="font-medium">ทั้งหมด</span>
+              </button>
               {categories.map(category => (
                 <button
                   key={category.id}
