@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Save, Upload, Image as ImageIcon, X, Landmark, CreditCard, User } from 'lucide-react';
+import { ArrowLeft, Save, Upload, Image as ImageIcon, X, Landmark, CreditCard, User, MessageCircle, Link, Key } from 'lucide-react';
 
 function ShopSettings({ settings, onSave, onBack, isUpdating }) {
   const [formData, setFormData] = useState({
     bankName: '',
     accountNumber: '',
     accountHolder: '',
-    qrCode: ''
+    qrCode: '',
+    lineChannelAccessToken: '',
+    lineOaId: '',
+    liffId: ''
   });
   const [previewImage, setPreviewImage] = useState(null);
 
@@ -16,7 +19,10 @@ function ShopSettings({ settings, onSave, onBack, isUpdating }) {
         bankName: settings.bankName || '',
         accountNumber: settings.accountNumber || '',
         accountHolder: settings.accountHolder || '',
-        qrCode: settings.qrCode || ''
+        qrCode: settings.qrCode || '',
+        lineChannelAccessToken: settings.lineChannelAccessToken || '',
+        lineOaId: settings.lineOaId || '',
+        liffId: settings.liffId || ''
       });
       setPreviewImage(settings.qrCode || null);
     }
@@ -174,6 +180,61 @@ function ShopSettings({ settings, onSave, onBack, isUpdating }) {
               <p className="text-center text-xs text-gray-400">
                 แนะนำให้ใช้รูปจัตุรัสเพื่อให้แสดงผลได้สวยงามที่สุด
               </p>
+            </div>
+          </div>
+
+          {/* ตั้งค่า LINE Messaging API */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
+            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-2">
+              <MessageCircle className="text-[#00B900]" size={20} />
+              ตั้งค่า LINE Messaging API
+            </h2>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                  <Key size={16} className="text-gray-400" />
+                  Channel Access Token
+                </label>
+                <textarea
+                  value={formData.lineChannelAccessToken}
+                  onChange={(e) => setFormData({ ...formData, lineChannelAccessToken: e.target.value })}
+                  placeholder="ใส่ Channel Access Token (Long-lived)"
+                  rows={3}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00B900] focus:border-transparent outline-none font-mono text-sm"
+                />
+                <p className="text-[10px] text-gray-400 mt-1">ใช้สำหรับส่งข้อความอัตโนมัติหาลูกค้า</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                  <MessageCircle size={16} className="text-gray-400" />
+                  LINE Official Account ID / Link
+                </label>
+                <input
+                  type="text"
+                  value={formData.lineOaId}
+                  onChange={(e) => setFormData({ ...formData, lineOaId: e.target.value })}
+                  placeholder="เช่น @yourshop หรือ https://line.me/R/ti/p/@yourshop"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00B900] focus:border-transparent outline-none"
+                />
+                <p className="text-[10px] text-gray-400 mt-1">ลิงก์สำหรับให้ลูกค้ากดเพิ่มเพื่อน</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                  <Link size={16} className="text-gray-400" />
+                  LIFF ID
+                </label>
+                <input
+                  type="text"
+                  value={formData.liffId}
+                  onChange={(e) => setFormData({ ...formData, liffId: e.target.value })}
+                  placeholder="เช่น 1234567890-XXXXXXXX"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00B900] focus:border-transparent outline-none"
+                />
+                <p className="text-[10px] text-gray-400 mt-1">ใช้สำหรับดึง User ID ลูกค้าในหน้าติดตามออเดอร์</p>
+              </div>
             </div>
           </div>
         </form>

@@ -40,7 +40,10 @@ function App() {
     accountNumber: '',
     accountHolder: '',
     qrCode: '',
-    isShopOpen: true
+    isShopOpen: true,
+    lineChannelAccessToken: '',
+    lineOaId: '',
+    liffId: ''
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -192,7 +195,10 @@ function App() {
           accountNumber: sData.accountNumber || '',
           accountHolder: sData.accountHolder || '',
           qrCode: formatDriveUrl(sData.qrCode || ''),
-          isShopOpen: (sData.isShopOpen === false || sData.isShopOpen === 'FALSE' || sData.isShopOpen === 'false') ? false : true
+          isShopOpen: (sData.isShopOpen === false || sData.isShopOpen === 'FALSE' || sData.isShopOpen === 'false') ? false : true,
+          lineChannelAccessToken: sData.lineChannelAccessToken || '',
+          lineOaId: sData.lineOaId || '',
+          liffId: sData.liffId || ''
         });
       }
 
@@ -247,6 +253,7 @@ function App() {
                 total: Number(o.total),
                 location: location,
                 createdAt: createdAt,
+                lineUserId: o.lineUserId || '',
                 cartItems: Array.isArray(o.cartItems) ? o.cartItems : (typeof o.cartItems === 'string' ? JSON.parse(o.cartItems) : [])
               };
             }).sort((a, b) => b.id - a.id);

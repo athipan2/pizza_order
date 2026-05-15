@@ -184,7 +184,18 @@ function CustomerPage({ onAddOrder, products, categories, orders, settings }) {
               <ArrowLeft size={20} />
               กลับไปหน้าเมนูอาหาร
             </button>
-            <OrderTracker orders={orders} />
+            <OrderTracker orders={orders} settings={settings} onUpdateOrderLineUserId={async (orderId, lineUserId) => {
+              // This function will be called from OrderTracker when LIFF succeeds
+              try {
+                const { googleSheetsApi } = await import('../utils/googleSheets');
+                await googleSheetsApi.updateOrderLineUserId(orderId, lineUserId);
+                // We don't necessarily need to update local state here as fetchData will pick it up
+                // but for immediate feedback we could.
+              } catch (error) {
+                console.error("Failed to update LINE User ID:", error);
+                throw error;
+              }
+            }} />
           </div>
         ) : (
           /* หน้าเมนู */
