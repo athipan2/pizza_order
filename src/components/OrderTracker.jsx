@@ -1,13 +1,72 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Package, CheckCircle, Clock, Truck, ChefHat, CreditCard, BellRing, X } from 'lucide-react';
+import { Search, Package, CheckCircle, Clock, Truck, ChefHat, CreditCard, BellRing, X, Cloud } from 'lucide-react';
 import { OrderStatus } from '../types';
+
+const Confetti = ({ count = 50 }) => {
+  const colors = ['bg-red-400', 'bg-blue-400', 'bg-yellow-400', 'bg-green-400', 'bg-pink-400', 'bg-purple-400'];
+  return (
+    <div className="fixed inset-0 pointer-events-none z-[10000] overflow-hidden">
+      {[...Array(count)].map((_, i) => (
+        <div
+          key={i}
+          className={`absolute w-2 h-2 rounded-full animate-confetti ${colors[i % colors.length]}`}
+          style={{
+            left: `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 3}s`,
+            animationDuration: `${2 + Math.random() * 2}s`
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
 function OrderTracker({ orders }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
-  const [notification, setNotification] = useState(null);
+  const [activeNotifications, setActiveNotifications] = useState([]);
   const previousStatuses = useRef({});
+  const speechInterval = useRef(null);
+
+  // ระบบเล่นเสียงแจ้งเตือนวนซ้ำ
+  useEffect(() => {
+    if (activeNotifications.length > 0) {
+      const playSpeech = () => {
+        if ('speechSynthesis' in window) {
+          // หยุดเสียงเก่าก่อน
+          window.speechSynthesis.cancel();
+
+          activeNotifications.forEach(order => {
+            const itemNames = order.cartItems.map(i => i.name).join(', ');
+            const utterance = new SpeechSynthesisUtterance(`ออเดอร์ ${itemNames} รอรับของได้เลย`);
+            utterance.lang = 'th-TH';
+            utterance.rate = 0.9;
+            window.speechSynthesis.speak(utterance);
+          });
+        }
+      };
+
+      // เล่นทันทีครั้งแรก
+      playSpeech();
+
+      // วนซ้ำทุก 5 วินาที
+      speechInterval.current = setInterval(playSpeech, 5000);
+    } else {
+      if (speechInterval.current) {
+        clearInterval(speechInterval.current);
+        speechInterval.current = null;
+      }
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    }
+
+    return () => {
+      if (speechInterval.current) clearInterval(speechInterval.current);
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    };
+  }, [activeNotifications]);
 
   // อัปเดตผลการค้นหาเมื่อข้อมูลออเดอร์จากเซิร์ฟเวอร์เปลี่ยน
   useEffect(() => {
@@ -18,14 +77,18 @@ function OrderTracker({ orders }) {
       const foundOrders = orders.filter(order => {
         const orderPhone = order.phone.toString().replace(/-/g, '');
         const normalizedOrderPhone = orderPhone.length === 9 ? '0' + orderPhone : orderPhone;
-        return normalizedOrderPhone === normalizedSearchPhone;
+        return normalizedOrderPhone === normalizedSearchPhone && order.status !== OrderStatus.COMPLETED;
       });
 
       // ตรวจสอบการเปลี่ยนสถานะเพื่อแจ้งเตือน
       foundOrders.forEach(order => {
         const prevStatus = previousStatuses.current[order.id];
         if (prevStatus && prevStatus !== order.status && order.status === OrderStatus.DELIVERED) {
-          triggerNotification(order);
+          // ตรวจสอบว่าไม่มีในรายการแจ้งเตือนเดิมอยู่แล้ว
+          setActiveNotifications(prev => {
+            if (prev.find(n => n.id === order.id)) return prev;
+            return [...prev, order];
+          });
         }
         previousStatuses.current[order.id] = order.status;
       });
@@ -33,21 +96,6 @@ function OrderTracker({ orders }) {
       setSearchResult(foundOrders);
     }
   }, [orders, hasSearched, searchQuery]);
-
-  const triggerNotification = (order) => {
-    // แสดง UI แจ้งเตือน
-    setNotification(`ออเดอร์ #${order.id.toString().slice(-6)} กำลังจัดส่ง`);
-
-    // เล่นเสียงแจ้งเตือน (Text-to-Speech)
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance('รอรับของได้เลย');
-      utterance.lang = 'th-TH';
-      window.speechSynthesis.speak(utterance);
-    }
-
-    // หายไปเองหลัง 10 วินาที
-    setTimeout(() => setNotification(null), 10000);
-  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -62,7 +110,7 @@ function OrderTracker({ orders }) {
       const normalizedOrderPhone = orderPhone.length === 9 ? '0' + orderPhone : orderPhone;
       const normalizedSearchPhone = searchPhone.length === 9 ? '0' + searchPhone : searchPhone;
 
-      return normalizedOrderPhone === normalizedSearchPhone;
+      return normalizedOrderPhone === normalizedSearchPhone && order.status !== OrderStatus.COMPLETED;
     });
     
     setSearchResult(foundOrders);
@@ -79,13 +127,39 @@ function OrderTracker({ orders }) {
     return steps.indexOf(status);
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = (status, isCurrent) => {
     switch (status) {
-      case OrderStatus.PENDING_PAYMENT: return <CreditCard size={20} />;
-      case OrderStatus.PAID: return <CheckCircle size={20} />;
-      case OrderStatus.PREPARING: return <ChefHat size={20} />;
-      case OrderStatus.DELIVERED: return <Truck size={20} />;
-      case OrderStatus.COMPLETED: return <Package size={20} />;
+      case OrderStatus.PENDING_PAYMENT:
+        return <CreditCard size={20} className={isCurrent ? "animate-bounce" : ""} />;
+      case OrderStatus.PAID:
+        return <CheckCircle size={20} className={isCurrent ? "scale-110" : ""} />;
+      case OrderStatus.PREPARING:
+        return (
+          <div className="relative">
+            {isCurrent && (
+              <>
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-1 h-3 bg-white/40 rounded-full animate-steam" style={{ animationDelay: '0s' }} />
+                <div className="absolute -top-3 left-1/4 -translate-x-1/2 w-1 h-2 bg-white/30 rounded-full animate-steam" style={{ animationDelay: '0.5s' }} />
+                <div className="absolute -top-3 left-3/4 -translate-x-1/2 w-1 h-2 bg-white/30 rounded-full animate-steam" style={{ animationDelay: '1s' }} />
+              </>
+            )}
+            <ChefHat size={20} className={isCurrent ? "animate-float" : ""} />
+          </div>
+        );
+      case OrderStatus.DELIVERED:
+        return (
+          <div className="relative">
+            {isCurrent && (
+              <>
+                <Cloud size={10} className="absolute -top-2 -right-3 text-white/40 animate-cloud" style={{ animationDelay: '0s' }} />
+                <Cloud size={8} className="absolute top-1 -right-4 text-white/30 animate-cloud" style={{ animationDelay: '1.5s' }} />
+              </>
+            )}
+            <Truck size={20} className={isCurrent ? "animate-drive" : ""} />
+          </div>
+        );
+      case OrderStatus.COMPLETED:
+        return <Package size={20} className={isCurrent ? "animate-bounce" : ""} />;
       default: return <Clock size={20} />;
     }
   };
@@ -112,48 +186,66 @@ function OrderTracker({ orders }) {
   ];
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-primary-100 overflow-hidden relative">
+    <div className="bg-white/60 backdrop-blur-lg rounded-3xl shadow-xl border border-white overflow-hidden relative transition-all duration-500">
       {/* แจ้งเตือนสถานะ - ปรับเป็น fixed เพื่อให้เห็นชัดเจนทุกที่ */}
-      {notification && (
-        <div className="fixed top-4 left-4 right-4 z-[9999] animate-bounce max-w-md mx-auto">
-          <div className="bg-orange-500 text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between border-2 border-white">
-            <div className="flex items-center gap-3">
-              <div className="bg-white text-orange-500 p-2.5 rounded-full shadow-inner">
-                <BellRing size={24} className="animate-ring" />
+      {activeNotifications.length > 0 && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-500">
+          <Confetti count={100} />
+          <div className="bg-orange-500/90 backdrop-blur-xl text-white p-8 rounded-[40px] shadow-[0_32px_64px_-16px_rgba(251,146,60,0.5)] max-w-md w-full border border-white/30 animate-in zoom-in-95 duration-300">
+            <div className="flex flex-col items-center text-center gap-6">
+              <div className="bg-white text-orange-500 p-6 rounded-full shadow-[0_20px_40px_rgba(255,255,255,0.3)] border-4 border-orange-100">
+                <BellRing size={56} className="animate-ring" />
               </div>
               <div>
-                <p className="font-bold text-lg leading-tight">รอรับของได้เลย!</p>
-                <p className="text-sm opacity-90">{notification}</p>
+                <h3 className="text-3xl font-black mb-2 tracking-tight">อาหารมาส่งแล้ว!</h3>
+                <p className="text-orange-50 font-medium text-lg">กรุณาเตรียมรอรับสินค้า</p>
               </div>
+
+              <div className="w-full bg-white/15 backdrop-blur-sm rounded-[24px] p-5 space-y-4 border border-white/10 shadow-inner">
+                {activeNotifications.map(order => (
+                  <div key={order.id} className="text-left border-b border-white/10 last:border-0 pb-3 last:pb-0">
+                    <p className="text-[10px] uppercase tracking-wider font-bold opacity-60">ออเดอร์ #{order.id.toString().slice(-6)}</p>
+                    <p className="font-bold text-lg leading-tight">{order.cartItems.map(i => i.name).join(', ')}</p>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setActiveNotifications([])}
+                className="w-full py-5 bg-white text-orange-600 font-black text-2xl rounded-2xl shadow-2xl hover:bg-orange-50 active:scale-95 transition-all shadow-[0_15px_30px_-5px_rgba(255,255,255,0.4)]"
+              >
+                รับทราบ
+              </button>
             </div>
-            <button
-              onClick={() => setNotification(null)}
-              className="p-2 hover:bg-white/20 rounded-full transition-colors"
-            >
-              <X size={24} />
-            </button>
           </div>
         </div>
       )}
 
-      <div className="p-4 bg-primary-500 text-white">
-        <h2 className="font-bold text-lg flex items-center gap-2">
-          <Package size={24} />
-          ติดตามสถานะออเดอร์
-        </h2>
-        <p className="text-sm text-primary-100">ค้นหาด้วยเบอร์โทรศัพท์</p>
+      <div className="p-6 bg-gradient-to-br from-primary-500 to-primary-600 text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+        <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 bg-primary-400/20 rounded-full blur-xl"></div>
+
+        <div className="relative z-10">
+          <h2 className="font-black text-2xl flex items-center gap-3">
+            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
+              <Package size={28} />
+            </div>
+            ติดตามสถานะออเดอร์
+          </h2>
+          <p className="text-sm text-primary-100 mt-1 font-medium opacity-90">ค้นหาด้วยเบอร์โทรศัพท์ของคุณ</p>
+        </div>
       </div>
 
-      <form onSubmit={handleSearch} className="p-4 space-y-4">
+      <form onSubmit={handleSearch} className="p-6 space-y-4">
         {/* ช่องค้นหาเบอร์โทร */}
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+        <div className="relative group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary-500 transition-colors" size={22} />
           <input
             type="tel"
             placeholder="กรอกเบอร์โทรศัพท์ 10 หลัก"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3.5 sm:py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none text-base"
+            className="w-full pl-14 pr-4 py-4 rounded-2xl border-2 border-gray-100 focus:border-primary-400 focus:ring-4 focus:ring-primary-400/10 outline-none text-lg font-medium transition-all bg-gray-50/50"
             required
             inputMode="numeric"
             pattern="[0-9]{10}"
@@ -162,25 +254,25 @@ function OrderTracker({ orders }) {
 
         <button
           type="submit"
-          className="w-full py-4 sm:py-3 rounded-xl bg-primary-500 text-white font-medium active:bg-primary-600 transition-colors flex items-center justify-center gap-2 text-base min-h-[48px]"
+          className="w-full py-4 rounded-2xl bg-primary-500 text-white font-black text-lg shadow-[0_10px_20px_-5px_rgba(var(--color-primary-500),0.4)] hover:shadow-[0_15px_30px_-5px_rgba(var(--color-primary-500),0.5)] active:scale-[0.98] transition-all flex items-center justify-center gap-3 min-h-[56px]"
         >
-          <Search size={20} />
-          ค้นหา
+          <Search size={24} />
+          ค้นหาออเดอร์
         </button>
       </form>
 
       {/* ผลการค้นหา */}
       {hasSearched && (
-        <div className="border-t border-gray-100">
-          <div className="p-2 bg-gray-50 flex items-center justify-center gap-2 border-b border-gray-100">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-[10px] text-gray-400">อัปเดตสถานะอัตโนมัติ (เรียลไทม์)</span>
+        <div className="border-t border-gray-100 bg-gray-50/30">
+          <div className="p-3 bg-white/40 backdrop-blur-sm flex items-center justify-center gap-3 border-b border-gray-100">
+            <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
+            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">อัปเดตสถานะอัตโนมัติ (เรียลไทม์)</span>
           </div>
           {searchResult && searchResult.length > 0 ? (
-            <div className="max-h-96 overflow-y-auto">
-              <div className="p-3 bg-green-50 border-b border-green-100">
-                <p className="text-green-700 text-sm text-center">
-                  พบ {searchResult.length} ออเดอร์
+            <div className="max-h-[500px] overflow-y-auto px-4 py-4 space-y-6">
+              <div className="p-3 bg-primary-50/50 backdrop-blur-sm border border-primary-100 rounded-2xl">
+                <p className="text-primary-700 text-sm font-bold text-center">
+                  ✨ พบข้อมูลทั้งหมด {searchResult.length} ออเดอร์
                 </p>
               </div>
               
@@ -188,50 +280,57 @@ function OrderTracker({ orders }) {
                 const currentStep = getStatusStep(order.status);
                 
                 return (
-                  <div key={order.id} className="p-4 border-b border-gray-100 last:border-b-0">
+                  <div key={order.id} className="bg-white rounded-[32px] p-6 shadow-[0_10px_25px_-5px_rgba(0,0,0,0.05)] border border-gray-100 relative overflow-hidden transition-all hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] hover:-translate-y-1">
                     {/* หัวออเดอร์ */}
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-8">
                       <div>
-                        <p className="text-sm text-gray-500">ออเดอร์ #{order.id.toString().slice(-6)}</p>
-                        <p className="text-xs text-gray-400">
-                          {new Date(order.createdAt).toLocaleString('th-TH')}
+                        <div className="flex items-center gap-2 mb-1">
+                           <span className="text-[10px] font-black bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full uppercase tracking-tighter">ORDER</span>
+                           <p className="text-sm font-black text-gray-900 tracking-tight">#{order.id.toString().slice(-6)}</p>
+                        </div>
+                        <p className="text-xs text-gray-400 font-medium">
+                          {new Date(order.createdAt).toLocaleString('th-TH', {
+                            day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit'
+                          })}
                         </p>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status, true)}`}>
+                      <span className={`px-4 py-1.5 rounded-2xl text-[11px] font-black shadow-sm tracking-wide ${getStatusColor(order.status, true)}`}>
                         {order.status === OrderStatus.DELIVERED ? 'กำลังจัดส่ง' : order.status}
                       </span>
                     </div>
 
                     {/* Timeline */}
-                    <div className="relative">
+                    <div className="relative mb-8">
                       {/* เส้นเชื่อม */}
-                      <div className="absolute left-5 top-5 bottom-5 w-0.5 bg-gray-200" />
+                      <div className="absolute left-[20px] top-6 bottom-6 w-1 bg-gray-100 rounded-full" />
                       
                       {/* Steps */}
-                      <div className="space-y-4">
+                      <div className="space-y-6">
                         {statusSteps.map((step, index) => {
                           const isActive = index <= currentStep;
                           const isCurrent = index === currentStep;
                           
                           return (
-                            <div key={step.status} className="flex items-start gap-4 relative">
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all duration-500 ${
-                                isActive ? getStatusColor(step.status, true) : 'bg-gray-200 text-gray-400'
-                              } ${isCurrent ? 'ring-4 ring-opacity-30 ring-primary-300 scale-110' : ''}`}>
-                                <div className={isCurrent ? 'animate-pulse' : ''}>
-                                  {getStatusIcon(step.status)}
+                            <div key={step.status} className="flex items-start gap-5 relative group">
+                              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 z-10 transition-all duration-700 shadow-sm ${
+                                isActive ? `${getStatusColor(step.status, true)} shadow-lg` : 'bg-gray-100 text-gray-300'
+                              } ${isCurrent ? 'ring-8 ring-primary-500/10 scale-110' : ''}`}>
+                                <div>
+                                  {getStatusIcon(step.status, isCurrent)}
                                 </div>
                               </div>
-                              <div className="flex-1 pt-1">
-                                <p className={`font-medium text-sm transition-colors duration-500 ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
-                                  {step.label}
+                              <div className="flex-1 pt-0.5">
+                                <div className="flex items-center gap-2">
+                                  <p className={`font-black text-sm transition-colors duration-500 ${isActive ? 'text-gray-900' : 'text-gray-300'}`}>
+                                    {step.label}
+                                  </p>
                                   {isCurrent && (
-                                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-primary-100 text-primary-700 animate-pulse">
-                                      กำลังดำเนินการ
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-black bg-primary-100 text-primary-700 uppercase tracking-wider animate-bounce">
+                                      NOW
                                     </span>
                                   )}
-                                </p>
-                                <p className={`text-xs ${isActive ? 'text-gray-500' : 'text-gray-400'}`}>
+                                </div>
+                                <p className={`text-[11px] font-medium transition-colors duration-500 ${isActive ? 'text-gray-500' : 'text-gray-300'}`}>
                                   {step.desc}
                                 </p>
                               </div>
