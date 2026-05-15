@@ -194,6 +194,25 @@ function OrderTracker({ orders, settings, onUpdateOrderLineUserId }) {
     }
 
     setIsLiffLoading(true);
+
+    // จำลองโหมดทดสอบ (Simulator Mode)
+    if (settings.liffId === 'SIMULATOR_MODE') {
+      setTimeout(async () => {
+        try {
+          const dummyUserId = "U1234567890abcdef1234567890abcdef";
+          if (onUpdateOrderLineUserId) {
+            await onUpdateOrderLineUserId(orderId, dummyUserId);
+            alert("✨ [โหมดทดสอบ] ลงทะเบียนรับแจ้งเตือนผ่าน LINE เรียบร้อยแล้ว! (จำลอง)");
+          }
+        } catch (error) {
+          alert("❌ เกิดข้อผิดพลาดในการบันทึกข้อมูลจำลอง");
+        } finally {
+          setIsLiffLoading(false);
+        }
+      }, 1000);
+      return;
+    }
+
     try {
       // โหลด LIFF SDK แบบ dynamic
       if (!window.liff) {

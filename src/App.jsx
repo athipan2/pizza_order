@@ -41,9 +41,9 @@ function App() {
     accountHolder: '',
     qrCode: '',
     isShopOpen: true,
-    lineChannelAccessToken: '',
-    lineOaId: '',
-    liffId: ''
+    lineChannelAccessToken: 'DUMMY_TOKEN_FOR_TESTING',
+    lineOaId: 'https://line.me/R/ti/p/@line', // ลิงก์จำลองสำหรับทดสอบปุ่มเพิ่มเพื่อน
+    liffId: 'SIMULATOR_MODE' // ใส่ค่าอะไรก็ได้เพื่อเปิดโหมดทดสอบในหน้าติดตามออเดอร์
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -196,9 +196,9 @@ function App() {
           accountHolder: sData.accountHolder || '',
           qrCode: formatDriveUrl(sData.qrCode || ''),
           isShopOpen: (sData.isShopOpen === false || sData.isShopOpen === 'FALSE' || sData.isShopOpen === 'false') ? false : true,
-          lineChannelAccessToken: sData.lineChannelAccessToken || '',
-          lineOaId: sData.lineOaId || '',
-          liffId: sData.liffId || ''
+          lineChannelAccessToken: sData.lineChannelAccessToken || 'DUMMY_TOKEN_FOR_TESTING',
+          lineOaId: sData.lineOaId || 'https://line.me/R/ti/p/@line',
+          liffId: sData.liffId || 'SIMULATOR_MODE'
         });
       }
 
@@ -348,7 +348,6 @@ function App() {
     try {
       // 4. ส่งข้อมูลไปที่ Google Sheets
       await googleSheetsApi.updateOrderStatus(orderId, newStatus);
-      console.log(`Successfully updated order ${orderId} to ${newStatus}`);
     } catch (error) {
       // 5. หากพลาด ให้แจ้งเตือนและย้อนกลับ (Rollback)
       console.error('Failed to update status to Google Sheets:', error);
