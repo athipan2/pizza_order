@@ -59,13 +59,13 @@ function ImageModal({ isOpen, image, title, onClose }) {
 
         {/* Image Container */}
         <div
-          className="w-full h-full overflow-hidden flex items-center justify-center rounded-[3rem] border-8 border-white shadow-2xl bg-white/5"
+          className="w-full max-h-[60vh] overflow-hidden flex items-center justify-center rounded-[2rem] sm:rounded-[3rem] border-4 sm:border-8 border-white shadow-2xl bg-white/5 relative"
           onClick={(e) => e.stopPropagation()}
         >
           <img
             src={image}
             alt={title}
-            className="max-w-full max-h-[70vh] object-contain transition-transform duration-300 cursor-zoom-in"
+            className="max-w-full max-h-[60vh] object-contain transition-transform duration-300 cursor-zoom-in"
             style={{
               transform: `scale(${scale}) rotate(${rotation}deg)`,
               filter: 'drop-shadow(0 20px 50px rgba(0,0,0,0.5))'
@@ -74,17 +74,27 @@ function ImageModal({ isOpen, image, title, onClose }) {
           />
         </div>
 
-        {/* Caption */}
-        {title && (
-          <div className="mt-6 text-white text-center animate-in slide-in-from-bottom-4 duration-500">
-            <h3 className="text-3xl font-black tracking-tight drop-shadow-lg">{title}</h3>
-            <div className="flex items-center justify-center gap-2 mt-2 opacity-60">
-               <span className="w-8 h-px bg-white/40"></span>
-               <p className="text-sm font-bold uppercase tracking-widest">Double Click to Reset</p>
-               <span className="w-8 h-px bg-white/40"></span>
+        {/* Large Close Button Below Image */}
+        <div className="mt-6 w-full flex flex-col items-center gap-6 animate-in slide-in-from-bottom-4 duration-500">
+          <button
+            onClick={onClose}
+            className="w-full sm:w-auto px-10 py-5 bg-white text-primary-950 font-black text-xl rounded-2xl shadow-2xl hover:scale-105 active:scale-90 transition-all flex items-center justify-center gap-3 group border-b-8 border-gray-200"
+          >
+            <X size={28} className="group-hover:rotate-90 transition-transform duration-300" />
+            ปิดรูปภาพนี้
+          </button>
+
+          {title && (
+            <div className="text-center">
+              <h3 className="text-2xl sm:text-3xl font-black tracking-tight drop-shadow-lg text-white">{title}</h3>
+              <div className="flex items-center justify-center gap-2 mt-2 opacity-60">
+                 <span className="w-8 h-px bg-white/40"></span>
+                 <p className="text-sm font-bold uppercase tracking-widest text-white">Double Click to Reset</p>
+                 <span className="w-8 h-px bg-white/40"></span>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

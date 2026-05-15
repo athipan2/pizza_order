@@ -63,8 +63,9 @@ function MenuItem({ item, onAdd }) {
 
       <div className="flex items-start gap-3 relative">
         <div
-          className="w-16 h-16 sm:w-20 sm:h-20 bg-primary-50 rounded-xl p-1 flex-shrink-0 overflow-hidden flex items-center justify-center relative group cursor-pointer"
+          className="w-24 h-24 sm:w-28 sm:h-28 bg-primary-50 rounded-[2rem] p-1 flex-shrink-0 overflow-hidden flex items-center justify-center relative group cursor-pointer shadow-md border-2 border-white active:scale-95 transition-all hover:border-primary-300"
           onClick={() => item.image && !isEmoji && item.isAvailable && setIsModalOpen(true)}
+          title="คลิกเพื่อดูรูปใหญ่"
         >
           {item.image && !isEmoji ? (
             <>
@@ -78,8 +79,16 @@ function MenuItem({ item, onAdd }) {
                 }}
               />
               {item.isAvailable && (
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Maximize2 size={20} className="text-white" />
+                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="bg-white/30 backdrop-blur-md p-1.5 rounded-full border border-white/40">
+                    <Maximize2 size={18} className="text-white" />
+                  </div>
+                </div>
+              )}
+              {/* Always visible zoom hint for mobile */}
+              {item.isAvailable && (
+                <div className="absolute bottom-2 right-2 bg-primary-500 text-white p-1.5 rounded-xl sm:hidden shadow-lg border border-white/50 animate-pulse">
+                  <Maximize2 size={14} />
                 </div>
               )}
             </>
