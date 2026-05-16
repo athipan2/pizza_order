@@ -1,7 +1,7 @@
 /**
  * แปลง Google Drive URL ให้เป็น URL ที่สามารถแสดงผลใน <img> tag ได้โดยตรง
  */
-export const formatDriveUrl = (url) => {
+export const formatDriveUrl = (url, size = 'w800') => {
   if (!url) return url;
 
   // If it's a data URL (Base64), return as is
@@ -21,8 +21,13 @@ export const formatDriveUrl = (url) => {
     }
 
     if (fileId) {
+      // ถ้าขอขนาดต้นฉบับ (full) ให้ใช้ uc?id เพื่อดึงไฟล์ตรง
+      if (size === 'full') {
+        return `https://drive.google.com/uc?export=view&id=${fileId}`;
+      }
       // ใช้ thumbnail API ของ Google Drive (รองรับทั้งรูปภาพและวิดีโอ มีประสิทธิภาพสูง)
-      return `https://drive.google.com/thumbnail?sz=w800&id=${fileId}`;
+      // สามารถระบุขนาดได้ผ่านพารามิเตอร์ size (เช่น w400, w800, w1600)
+      return `https://drive.google.com/thumbnail?sz=${size}&id=${fileId}`;
     }
   }
 

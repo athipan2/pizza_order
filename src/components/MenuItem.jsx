@@ -212,6 +212,7 @@ function MenuItem({ item, onAdd }) {
         image={item.image}
         title={item.name}
         onClose={() => setIsModalOpen(false)}
+        highRes={true}
       />
     </div>
   );
