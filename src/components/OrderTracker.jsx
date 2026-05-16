@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Package, CheckCircle, Clock, Truck, ChefHat, CreditCard, BellRing, X, Cloud } from 'lucide-react';
+import { Search, Package, CheckCircle, Clock, Truck, ChefHat, CreditCard, BellRing, X, Cloud, MessageCircle, UserPlus, Bell } from 'lucide-react';
 import { OrderStatus } from '../types';
 
 const Confetti = ({ count = 50 }) => {
@@ -21,7 +21,7 @@ const Confetti = ({ count = 50 }) => {
   );
 };
 
-function OrderTracker({ orders }) {
+function OrderTracker({ orders, settings, onUpdateOrderLineUserId }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
@@ -184,6 +184,66 @@ function OrderTracker({ orders }) {
     { status: OrderStatus.DELIVERED, label: 'กำลังจัดส่ง', desc: 'อยู่ระหว่างจัดส่ง' },
     { status: OrderStatus.COMPLETED, label: 'เสร็จสิ้น', desc: 'ออเดอร์สำเร็จ' }
   ];
+
+  const [isLiffLoading, setIsLiffLoading] = useState(false);
+
+  const handleLiffLogin = async (orderId) => {
+    if (!settings.liffId) {
+      alert("⚠️ ร้านค้ายังไม่ได้ตั้งค่า LIFF ID กรุณาแจ้งทางร้าน");
+      return;
+    }
+
+    setIsLiffLoading(true);
+
+    // จำลองโหมดทดสอบ (Simulator Mode)
+    if (settings.liffId === 'SIMULATOR_MODE') {
+      setTimeout(async () => {
+        try {
+          const dummyUserId = "U1234567890abcdef1234567890abcdef";
+          if (onUpdateOrderLineUserId) {
+            await onUpdateOrderLineUserId(orderId, dummyUserId);
+            alert("✨ [โหมดทดสอบ] ลงทะเบียนรับแจ้งเตือนผ่าน LINE เรียบร้อยแล้ว! (จำลอง)");
+          }
+        } catch (error) {
+          alert("❌ เกิดข้อผิดพลาดในการบันทึกข้อมูลจำลอง");
+        } finally {
+          setIsLiffLoading(false);
+        }
+      }, 1000);
+      return;
+    }
+
+    try {
+      // โหลด LIFF SDK แบบ dynamic
+      if (!window.liff) {
+        const script = document.createElement('script');
+        script.src = "https://static.line-scdn.net/liff/edge/2/sdk.js";
+        script.async = true;
+        document.body.appendChild(script);
+        await new Promise((resolve) => script.onload = resolve);
+      }
+
+      await window.liff.init({ liffId: settings.liffId });
+
+      if (!window.liff.isLoggedIn()) {
+        window.liff.login();
+        return;
+      }
+
+      const profile = await window.liff.getProfile();
+      const userId = profile.userId;
+
+      if (onUpdateOrderLineUserId) {
+        await onUpdateOrderLineUserId(orderId, userId);
+        alert("✅ ลงทะเบียนรับแจ้งเตือนผ่าน LINE เรียบร้อยแล้ว!");
+      }
+    } catch (error) {
+      console.error("LIFF Error:", error);
+      alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อ LINE: " + error.message);
+    } finally {
+      setIsLiffLoading(false);
+    }
+  };
 
   return (
     <div className="bg-white/60 backdrop-blur-lg rounded-3xl shadow-xl border border-white overflow-hidden relative transition-all duration-500">
@@ -364,6 +424,41 @@ function OrderTracker({ orders }) {
                       <p className="text-xs text-gray-500 mb-1">วิธีรับสินค้า: {order.deliveryMethod}</p>
                       {order.deliveryMethod === 'เดลิเวอรี่' && (
                         <p className="text-xs text-gray-600">{order.address}</p>
+                      )}
+                    </div>
+
+                    {/* LINE Integration */}
+                    <div className="mt-4 flex flex-col gap-3">
+                      {settings.lineOaId && (
+                        <a
+                          href={settings.lineOaId.startsWith('http') ? settings.lineOaId : `https://line.me/R/ti/p/${settings.lineOaId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-2 py-3 bg-[#00B900] text-white rounded-2xl font-bold text-sm shadow-sm hover:bg-[#009900] transition-all active:scale-95"
+                        >
+                          <UserPlus size={18} />
+                          เพิ่มเพื่อนเพื่อรับข่าวสาร
+                        </a>
+                      )}
+
+                      {!order.lineUserId ? (
+                        <button
+                          onClick={() => handleLiffLogin(order.id)}
+                          disabled={isLiffLoading}
+                          className="flex items-center justify-center gap-2 py-3 bg-white text-[#00B900] border-2 border-[#00B900] rounded-2xl font-bold text-sm hover:bg-[#f0fff0] transition-all active:scale-95 disabled:opacity-50"
+                        >
+                          {isLiffLoading ? (
+                            <div className="w-5 h-5 border-2 border-[#00B900] border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <Bell size={18} />
+                          )}
+                          รับแจ้งเตือนสถานะผ่าน LINE
+                        </button>
+                      ) : (
+                        <div className="flex items-center justify-center gap-2 py-3 bg-green-50 text-green-700 rounded-2xl font-bold text-sm border border-green-200">
+                          <CheckCircle size={18} />
+                          ลงทะเบียนแจ้งเตือนแล้ว
+                        </div>
                       )}
                     </div>
                   </div>
