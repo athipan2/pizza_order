@@ -51,10 +51,18 @@ function doGet(e) {
     if (action === 'getSettings') {
       const sheet = ss.getSheetByName('Settings');
       if (!sheet) {
-        return createJsonResponse({ bankName: "", accountNumber: "", accountHolder: "", qrCode: "", isShopOpen: true });
+        return createJsonResponse({ bankName: "", accountNumber: "", accountHolder: "", qrCode: "", isShopOpen: true, lineChannelAccessToken: "", lineOaId: "", liffId: "", showLineNotify: true });
       }
       const data = getSheetDataAsJson(sheet);
-      return createJsonResponse(data.length > 0 ? data[0] : { bankName: "", accountNumber: "", accountHolder: "", qrCode: "", isShopOpen: true });
+      const settings = data.length > 0 ? data[0] : { bankName: "", accountNumber: "", accountHolder: "", qrCode: "", isShopOpen: true, lineChannelAccessToken: "", lineOaId: "", liffId: "", showLineNotify: true };
+
+      // Mask sensitive data
+      const safeSettings = { ...settings };
+      if (safeSettings.lineChannelAccessToken) {
+        safeSettings.lineChannelAccessToken = safeSettings.lineChannelAccessToken.substring(0, 5) + "..." + safeSettings.lineChannelAccessToken.substring(safeSettings.lineChannelAccessToken.length - 5);
+      }
+
+      return createJsonResponse(safeSettings);
     }
 
     return createJsonResponse({ status: "error", message: "Unknown GET action: " + action });
@@ -196,7 +204,8 @@ function doPost(e) {
       sheet.appendRow([
         data.id, data.name, data.phone, data.address, data.deliveryMethod,
         data.paymentMethod, JSON.stringify(data.cartItems), data.total,
-        data.status, data.createdAt, slipUrl, data.location, data.remark
+        data.status, data.createdAt, slipUrl, data.location, data.remark,
+        data.lineUserId || ""
       ]);
       SpreadsheetApp.flush();
       return createJsonResponse({ status: 'success' });
@@ -204,26 +213,76 @@ function doPost(e) {
 
     if (action === 'updateOrderStatus') {
       const sheet = ss.getSheetByName('Orders');
+      const dataRange = sheet.getDataRange().getValues(); // Get raw values to get lineUserId accurately
+      const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      const statusIdx = headers.indexOf('status');
+      const deliveryMethodIdx = headers.indexOf('deliveryMethod');
+      const lineUserIdIdx = headers.indexOf('lineUserId');
+
+      const targetId = data.id.toString().replace(/,/g, '');
+      let found = false;
+      let orderData = null;
+
+      for (let i = 1; i < dataRange.length; i++) {
+        const currentId = dataRange[i][0].toString().replace(/,/g, '');
+        if (currentId === targetId) {
+          sheet.getRange(i + 1, statusIdx + 1).setValue(data.status);
+          found = true;
+
+          orderData = {
+            id: currentId,
+            status: data.status,
+            deliveryMethod: dataRange[i][deliveryMethodIdx],
+            lineUserId: dataRange[i][lineUserIdIdx]
+          };
+          break;
+        }
+      }
+
+      SpreadsheetApp.flush();
+
+      // ส่งการแจ้งเตือน LINE อัตโนมัติ
+      if (found && orderData && orderData.lineUserId) {
+        let message = "";
+        if (data.status === "ชำระแล้ว") {
+          message = "ชำระเงินเรียบร้อยแล้ว ขอบคุณครับ";
+        } else if (data.status === "เสร็จสิ้น" && orderData.deliveryMethod === "รับหน้าร้าน") {
+          message = "อาหารพร้อมแล้ว กรุณามารับ";
+        } else if (data.status === "ส่งแล้ว" && orderData.deliveryMethod === "เดลิเวอรี่") {
+          message = "สินค้ากำลังจัดส่ง กรุณาเตรียมรับ";
+        }
+
+        if (message) {
+          sendLineNotification(ss, orderData.lineUserId, message);
+        }
+      }
+
+      return createJsonResponse({ status: found ? 'success' : 'error', message: found ? '' : 'Order not found' });
+    }
+
+    if (action === 'updateOrderLineUserId') {
+      const sheet = ss.getSheetByName('Orders');
       const dataRange = sheet.getDataRange().getDisplayValues();
       const targetId = data.id.toString().replace(/,/g, '');
       let found = false;
       for (let i = 1; i < dataRange.length; i++) {
         const currentId = dataRange[i][0].toString().replace(/,/g, '');
         if (currentId === targetId) {
-          sheet.getRange(i + 1, 9).setValue(data.status);
+          // lineUserId อยู่คอลัมน์ที่ 14
+          sheet.getRange(i + 1, 14).setValue(data.lineUserId);
           found = true;
           break;
         }
       }
       SpreadsheetApp.flush();
-      return createJsonResponse({ status: found ? 'success' : 'error', message: found ? '' : 'Order not found' });
+      return createJsonResponse({ status: found ? 'success' : 'error' });
     }
 
     if (action === 'updateSettings') {
       let sheet = ss.getSheetByName('Settings');
       if (!sheet) {
         sheet = ss.insertSheet('Settings');
-        sheet.getRange(1, 1, 1, 5).setValues([['bankName', 'accountNumber', 'accountHolder', 'qrCode', 'isShopOpen']]);
+        sheet.getRange(1, 1, 1, 9).setValues([['bankName', 'accountNumber', 'accountHolder', 'qrCode', 'isShopOpen', 'lineChannelAccessToken', 'lineOaId', 'liffId', 'showLineNotify']]);
       }
 
       let qrCodeUrl = data.qrCode;
@@ -231,16 +290,27 @@ function doPost(e) {
         qrCodeUrl = uploadToDrive(qrCodeUrl, "Shop_QRCode");
       }
 
+      // ป้องกันการทับค่าเดิมที่ Mask ไว้
+      const existingData = sheet.getLastRow() > 1 ? sheet.getRange(2, 1, 1, 9).getValues()[0] : null;
+      let accessToken = data.lineChannelAccessToken || "";
+      if (accessToken.includes("...") && existingData) {
+        accessToken = existingData[5]; // ใช้ค่าเดิมในชีต
+      }
+
       const settingsData = [
         data.bankName || "",
         data.accountNumber || "",
         data.accountHolder || "",
         qrCodeUrl || "",
-        data.isShopOpen !== undefined ? data.isShopOpen : true
+        data.isShopOpen !== undefined ? data.isShopOpen : true,
+        accessToken,
+        data.lineOaId || "",
+        data.liffId || "",
+        data.showLineNotify !== undefined ? data.showLineNotify : true
       ];
 
       if (sheet.getLastRow() > 1) {
-        sheet.getRange(2, 1, 1, 5).setValues([settingsData]);
+        sheet.getRange(2, 1, 1, 9).setValues([settingsData]);
       } else {
         sheet.appendRow(settingsData);
       }
@@ -262,13 +332,13 @@ function setupSheets(ss) {
 
   let oSheet = ss.getSheetByName('Orders');
   if (!oSheet) oSheet = ss.insertSheet('Orders');
-  oSheet.getRange(1, 1, 1, 13).setValues([['id', 'name', 'phone', 'address', 'deliveryMethod', 'paymentMethod', 'cartItems', 'total', 'status', 'createdAt', 'slipFile', 'location', 'remark']]);
-  oSheet.getRange(1, 1, 1, 13).setFontWeight("bold").setBackground("#f3f3f3");
+  oSheet.getRange(1, 1, 1, 14).setValues([['id', 'name', 'phone', 'address', 'deliveryMethod', 'paymentMethod', 'cartItems', 'total', 'status', 'createdAt', 'slipFile', 'location', 'remark', 'lineUserId']]);
+  oSheet.getRange(1, 1, 1, 14).setFontWeight("bold").setBackground("#f3f3f3");
 
   let sSheet = ss.getSheetByName('Settings');
   if (!sSheet) sSheet = ss.insertSheet('Settings');
-  sSheet.getRange(1, 1, 1, 5).setValues([['bankName', 'accountNumber', 'accountHolder', 'qrCode', 'isShopOpen']]);
-  sSheet.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#f3f3f3");
+  sSheet.getRange(1, 1, 1, 9).setValues([['bankName', 'accountNumber', 'accountHolder', 'qrCode', 'isShopOpen', 'lineChannelAccessToken', 'lineOaId', 'liffId', 'showLineNotify']]);
+  sSheet.getRange(1, 1, 1, 9).setFontWeight("bold").setBackground("#f3f3f3");
 
   let cSheet = ss.getSheetByName('Categories');
   if (!cSheet) {
@@ -294,9 +364,9 @@ function getSheetDataAsJson(sheet, parseCart = false) {
   if (sheetName === 'Products') {
     headers = ['id', 'name', 'price', 'priceM', 'priceL', 'category', 'description', 'image', 'isAvailable'];
   } else if (sheetName === 'Orders') {
-    headers = ['id', 'name', 'phone', 'address', 'deliveryMethod', 'paymentMethod', 'cartItems', 'total', 'status', 'createdAt', 'slipFile', 'location', 'remark'];
+    headers = ['id', 'name', 'phone', 'address', 'deliveryMethod', 'paymentMethod', 'cartItems', 'total', 'status', 'createdAt', 'slipFile', 'location', 'remark', 'lineUserId'];
   } else if (sheetName === 'Settings') {
-    headers = ['bankName', 'accountNumber', 'accountHolder', 'qrCode', 'isShopOpen'];
+    headers = ['bankName', 'accountNumber', 'accountHolder', 'qrCode', 'isShopOpen', 'lineChannelAccessToken', 'lineOaId', 'liffId', 'showLineNotify'];
   } else if (sheetName === 'Categories') {
     headers = ['id', 'name', 'icon'];
   }
@@ -327,6 +397,43 @@ function getSheetDataAsJson(sheet, parseCart = false) {
 function createJsonResponse(data) {
   return ContentService.createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function sendLineNotification(ss, userId, message) {
+  try {
+    const settingsSheet = ss.getSheetByName('Settings');
+    if (!settingsSheet || settingsSheet.getLastRow() < 2) return;
+
+    const settings = getSheetDataAsJson(settingsSheet)[0];
+    const token = settings.lineChannelAccessToken;
+
+    if (!token || !userId) return;
+
+    const url = 'https://api.line.me/v2/bot/message/push';
+    const payload = {
+      to: userId,
+      messages: [
+        {
+          type: 'text',
+          text: message
+        }
+      ]
+    };
+
+    const options = {
+      method: 'post',
+      contentType: 'application/json',
+      headers: {
+        Authorization: 'Bearer ' + token
+      },
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    };
+
+    UrlFetchApp.fetch(url, options);
+  } catch (e) {
+    console.error('Line Notification Error:', e.toString());
+  }
 }
 
 function uploadToDrive(base64Data, fileName) {

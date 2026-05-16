@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Save, Upload, Image as ImageIcon, X, Landmark, CreditCard, User } from 'lucide-react';
+import { ArrowLeft, Save, Upload, Image as ImageIcon, X, Landmark, CreditCard, User, MessageCircle, Link } from 'lucide-react';
 
 function ShopSettings({ settings, onSave, onBack, isUpdating }) {
   const [formData, setFormData] = useState({
     bankName: '',
     accountNumber: '',
     accountHolder: '',
-    qrCode: ''
+    qrCode: '',
+    lineChannelAccessToken: '',
+    lineOaId: '',
+    liffId: '',
+    showLineNotify: true
   });
   const [previewImage, setPreviewImage] = useState(null);
 
@@ -16,7 +20,11 @@ function ShopSettings({ settings, onSave, onBack, isUpdating }) {
         bankName: settings.bankName || '',
         accountNumber: settings.accountNumber || '',
         accountHolder: settings.accountHolder || '',
-        qrCode: settings.qrCode || ''
+        qrCode: settings.qrCode || '',
+        lineChannelAccessToken: settings.lineChannelAccessToken || '',
+        lineOaId: settings.lineOaId || '',
+        liffId: settings.liffId || '',
+        showLineNotify: settings.showLineNotify !== undefined ? settings.showLineNotify : true
       });
       setPreviewImage(settings.qrCode || null);
     }
@@ -118,6 +126,76 @@ function ShopSettings({ settings, onSave, onBack, isUpdating }) {
                   placeholder="นายสมชาย ใจดี"
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none"
                 />
+              </div>
+            </div>
+          </div>
+
+          {/* ข้อมูล LINE Notification */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <MessageCircle className="text-[#06C755]" size={20} />
+                ตั้งค่า LINE Notification
+              </h2>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={formData.showLineNotify}
+                  onChange={(e) => setFormData({ ...formData, showLineNotify: e.target.checked })}
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#06C755]"></div>
+                <span className="ml-3 text-sm font-medium text-gray-700">เปิดใช้งาน</span>
+              </label>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="lineChannelAccessToken" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                  <MessageCircle size={16} className="text-gray-400" />
+                  LINE Channel Access Token
+                </label>
+                <input
+                  id="lineChannelAccessToken"
+                  type="password"
+                  value={formData.lineChannelAccessToken}
+                  onChange={(e) => setFormData({ ...formData, lineChannelAccessToken: e.target.value })}
+                  placeholder="ใส่ Long-lived Channel Access Token"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none"
+                />
+                <p className="text-[10px] text-gray-400 mt-1">* ใช้สำหรับส่งข้อความ Push Message หาลูกค้า</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="lineOaId" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                    <User size={16} className="text-gray-400" />
+                    LINE OA ID
+                  </label>
+                  <input
+                    id="lineOaId"
+                    type="text"
+                    value={formData.lineOaId}
+                    onChange={(e) => setFormData({ ...formData, lineOaId: e.target.value })}
+                    placeholder="@your-oa-id"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="liffId" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                    <Link size={16} className="text-gray-400" />
+                    LIFF ID
+                  </label>
+                  <input
+                    id="liffId"
+                    type="text"
+                    value={formData.liffId}
+                    onChange={(e) => setFormData({ ...formData, liffId: e.target.value })}
+                    placeholder="ใส่ LIFF ID ของคุณ"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-400 focus:border-transparent outline-none"
+                  />
+                </div>
               </div>
             </div>
           </div>

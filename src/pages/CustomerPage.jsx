@@ -6,7 +6,7 @@ import Cart from '../components/Cart';
 import CheckoutForm from '../components/CheckoutForm';
 import OrderTracker from '../components/OrderTracker';
 
-function CustomerPage({ onAddOrder, products, categories, orders, settings }) {
+function CustomerPage({ onAddOrder, onUpdateOrderLineUserId, products, categories, orders, settings }) {
   const menuItems = products;
   const [cart, setCart] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -184,7 +184,11 @@ function CustomerPage({ onAddOrder, products, categories, orders, settings }) {
               <ArrowLeft size={20} />
               กลับไปหน้าเมนูอาหาร
             </button>
-            <OrderTracker orders={orders} />
+            <OrderTracker
+              orders={orders}
+              settings={settings}
+              onUpdateLineUserId={onUpdateOrderLineUserId}
+            />
           </div>
         ) : (
           /* หน้าเมนู */

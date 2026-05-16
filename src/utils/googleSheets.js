@@ -1,4 +1,4 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycby4epGBN36BvnCLk5SwjvGcdk3bshclNo1cH-Bgmi8EPjK2_0xgRHJfq9lTkuw-4KeP/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyYa7F68oa4TUKnELSGcSju8ZclZ4gvwRoaS2bFDOwSUOgA0ZU92ZO8i6pLzfV2CYXQ/exec';
 
 export const googleSheetsApi = {
   async getProducts() {
@@ -197,6 +197,27 @@ export const googleSheetsApi = {
       return result;
     } catch (error) {
       console.error('Error updating order status:', error);
+      throw error;
+    }
+  },
+
+  async updateOrderLineUserId(orderId, lineUserId) {
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'updateOrderLineUserId',
+          id: orderId.toString(),
+          lineUserId
+        }),
+      });
+      if (!response.ok) throw new Error('Network response was not ok');
+      const result = await response.json();
+      if (result.status === 'error') throw new Error(result.message);
+      return result;
+    } catch (error) {
+      console.error('Error updating order lineUserId:', error);
       throw error;
     }
   },

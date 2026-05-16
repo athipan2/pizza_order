@@ -40,7 +40,11 @@ function App() {
     accountNumber: '',
     accountHolder: '',
     qrCode: '',
-    isShopOpen: true
+    isShopOpen: true,
+    lineChannelAccessToken: '',
+    lineOaId: '',
+    liffId: '',
+    showLineNotify: true
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -192,7 +196,11 @@ function App() {
           accountNumber: sData.accountNumber || '',
           accountHolder: sData.accountHolder || '',
           qrCode: formatDriveUrl(sData.qrCode || ''),
-          isShopOpen: (sData.isShopOpen === false || sData.isShopOpen === 'FALSE' || sData.isShopOpen === 'false') ? false : true
+          isShopOpen: (sData.isShopOpen === false || sData.isShopOpen === 'FALSE' || sData.isShopOpen === 'false') ? false : true,
+          lineChannelAccessToken: sData.lineChannelAccessToken || '',
+          lineOaId: sData.lineOaId || '',
+          liffId: sData.liffId || '',
+          showLineNotify: (sData.showLineNotify === false || sData.showLineNotify === 'FALSE' || sData.showLineNotify === 'false') ? false : true
         });
       }
 
@@ -478,6 +486,23 @@ function App() {
     }
   };
 
+  const handleUpdateOrderLineUserId = async (orderId, lineUserId) => {
+    // Optimistic Update
+    setOrders(prev =>
+      prev.map(order =>
+        order.id.toString() === orderId.toString() ? { ...order, lineUserId } : order
+      )
+    );
+
+    try {
+      await googleSheetsApi.updateOrderLineUserId(orderId, lineUserId);
+      console.log(`Updated LINE User ID for order ${orderId}`);
+    } catch (error) {
+      console.error('Failed to update LINE User ID:', error);
+      // ในกรณีนี้เราอาจจะไม่ต้อง Rollback แรงๆ เพราะ User ID แค่ไม่ได้เก็บ แต่ UI แสดงไปแล้ว
+    }
+  };
+
   const handleToggleAvailability = async (productId) => {
     const idStr = productId.toString();
     const product = products.find(p => p.id.toString() === idStr);
@@ -567,6 +592,7 @@ function App() {
       {!isAdminPage ? (
         <CustomerPage
           onAddOrder={handleAddOrder}
+          onUpdateOrderLineUserId={handleUpdateOrderLineUserId}
           products={products}
           categories={categories}
           orders={orders}

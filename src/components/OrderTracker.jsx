@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Package, CheckCircle, Clock, Truck, ChefHat, CreditCard, BellRing, X, Cloud } from 'lucide-react';
+import { Search, Package, CheckCircle, Clock, Truck, ChefHat, CreditCard, BellRing, X, Cloud, MessageCircle, AlertCircle, Loader2, UserPlus } from 'lucide-react';
 import { OrderStatus } from '../types';
 
 const Confetti = ({ count = 50 }) => {
@@ -21,13 +21,58 @@ const Confetti = ({ count = 50 }) => {
   );
 };
 
-function OrderTracker({ orders }) {
+function OrderTracker({ orders, settings, onUpdateLineUserId }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [activeNotifications, setActiveNotifications] = useState([]);
+  const [isLiffLoading, setIsLiffLoading] = useState(false);
+  const [liffError, setLiffError] = useState(null);
   const previousStatuses = useRef({});
   const speechInterval = useRef(null);
+
+  // เริ่มต้นใช้งาน LIFF
+  useEffect(() => {
+    if (settings?.liffId && window.liff) {
+      window.liff.init({ liffId: settings.liffId })
+        .then(() => {
+          console.log('LIFF initialized');
+        })
+        .catch((err) => {
+          console.error('LIFF initialization failed', err);
+        });
+    }
+  }, [settings?.liffId]);
+
+  const handleLineNotify = async (orderId) => {
+    if (!settings?.liffId) {
+      alert('ร้านค้ายังไม่ได้ตั้งค่าระบบแจ้งเตือนผ่าน LINE');
+      return;
+    }
+
+    setIsLiffLoading(true);
+    setLiffError(null);
+
+    try {
+      if (!window.liff.isLoggedIn()) {
+        window.liff.login();
+        return;
+      }
+
+      const profile = await window.liff.getProfile();
+      const lineUserId = profile.userId;
+
+      if (lineUserId) {
+        await onUpdateLineUserId(orderId, lineUserId);
+        alert('ลงทะเบียนรับการแจ้งเตือนสำเร็จ! ระบบจะแจ้งเตือนเมื่อสถานะออเดอร์เปลี่ยน');
+      }
+    } catch (err) {
+      console.error('LIFF Error:', err);
+      setLiffError('ไม่สามารถเชื่อมต่อ LINE ได้ กรุณาลองใหม่อีกครั้ง');
+    } finally {
+      setIsLiffLoading(false);
+    }
+  };
 
   // ระบบเล่นเสียงแจ้งเตือนวนซ้ำ
   useEffect(() => {
@@ -358,6 +403,48 @@ function OrderTracker({ orders }) {
                         <span className="font-bold text-primary-600">฿{order.total}</span>
                       </div>
                     </div>
+
+                    {/* ปุ่มรับการแจ้งเตือน LINE */}
+                    {!order.lineUserId && settings?.liffId && settings?.showLineNotify !== false && (
+                      <div className="mt-4 space-y-2">
+                        {settings?.lineOaId && (
+                          <a
+                            href={`https://line.me/R/ti/p/${settings.lineOaId.startsWith('@') ? settings.lineOaId : '@' + settings.lineOaId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full py-3 px-4 bg-white text-[#06C755] border-2 border-[#06C755] rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-green-50 transition-all active:scale-95"
+                          >
+                            <UserPlus size={18} />
+                            เพิ่มเพื่อนเพื่อรับแจ้งเตือน
+                          </a>
+                        )}
+                        <button
+                          onClick={() => handleLineNotify(order.id)}
+                          disabled={isLiffLoading}
+                          className="w-full py-3 px-4 bg-[#06C755] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#05b14c] transition-all active:scale-95 disabled:opacity-50"
+                        >
+                          {isLiffLoading ? (
+                            <Loader2 size={18} className="animate-spin" />
+                          ) : (
+                            <MessageCircle size={18} />
+                          )}
+                          รับการแจ้งเตือนผ่าน LINE
+                        </button>
+                        <p className="text-[10px] text-gray-400 text-center mt-1.5 flex items-center justify-center gap-1 px-4">
+                          <AlertCircle size={10} className="flex-shrink-0" />
+                          <span>กรุณา<b>เพิ่มเพื่อน</b>ก่อน แล้วค่อยกด<b>รับการแจ้งเตือน</b>นะครับ</span>
+                        </p>
+                      </div>
+                    )}
+
+                    {order.lineUserId && (
+                      <div className="mt-4 py-2 px-4 bg-green-50 rounded-xl border border-green-100 flex items-center justify-center gap-2">
+                        <CheckCircle size={14} className="text-green-500" />
+                        <span className="text-[11px] font-bold text-green-700 uppercase tracking-wider">
+                          เปิดการแจ้งเตือน LINE แล้ว
+                        </span>
+                      </div>
+                    )}
 
                     {/* ข้อมูลจัดส่ง */}
                     <div className="mt-4 p-3 bg-gray-50 rounded-xl">
