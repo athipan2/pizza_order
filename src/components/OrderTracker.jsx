@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Package, CheckCircle, Clock, Truck, ChefHat, CreditCard, BellRing, X, Cloud, MessageCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Search, Package, CheckCircle, Clock, Truck, ChefHat, CreditCard, BellRing, X, Cloud, MessageCircle, AlertCircle, Loader2, UserPlus } from 'lucide-react';
 import { OrderStatus } from '../types';
 
 const Confetti = ({ count = 50 }) => {
@@ -406,7 +406,18 @@ function OrderTracker({ orders, settings, onUpdateLineUserId }) {
 
                     {/* ปุ่มรับการแจ้งเตือน LINE */}
                     {!order.lineUserId && settings?.liffId && (
-                      <div className="mt-4">
+                      <div className="mt-4 space-y-2">
+                        {settings?.lineOaId && (
+                          <a
+                            href={`https://line.me/R/ti/p/${settings.lineOaId.startsWith('@') ? settings.lineOaId : '@' + settings.lineOaId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full py-3 px-4 bg-white text-[#06C755] border-2 border-[#06C755] rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-green-50 transition-all active:scale-95"
+                          >
+                            <UserPlus size={18} />
+                            เพิ่มเพื่อนเพื่อรับแจ้งเตือน
+                          </a>
+                        )}
                         <button
                           onClick={() => handleLineNotify(order.id)}
                           disabled={isLiffLoading}
@@ -419,9 +430,9 @@ function OrderTracker({ orders, settings, onUpdateLineUserId }) {
                           )}
                           รับการแจ้งเตือนผ่าน LINE
                         </button>
-                        <p className="text-[10px] text-gray-400 text-center mt-1.5 flex items-center justify-center gap-1">
-                          <AlertCircle size={10} />
-                          กดเพื่อรับข้อความแจ้งเตือนเมื่ออาหารพร้อมส่ง
+                        <p className="text-[10px] text-gray-400 text-center mt-1.5 flex items-center justify-center gap-1 px-4">
+                          <AlertCircle size={10} className="flex-shrink-0" />
+                          <span>กรุณา<b>เพิ่มเพื่อน</b>ก่อน แล้วค่อยกด<b>รับการแจ้งเตือน</b>นะครับ</span>
                         </p>
                       </div>
                     )}
