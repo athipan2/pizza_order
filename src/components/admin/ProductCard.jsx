@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Edit2, Trash2, Image as ImageIcon, Maximize2, Ban, CheckCircle2 } from 'lucide-react';
 import ImageModal from '../ImageModal';
 
@@ -13,9 +14,11 @@ function ProductCard({ product, onEdit, onDelete, onToggleAvailability }) {
   return (
     <div className={`bg-white rounded-2xl overflow-hidden shadow-sm border transition-all ${!product.isAvailable ? 'border-red-200 opacity-95 grayscale-[0.3]' : 'border-gray-200 hover:shadow-md'}`}>
       {/* รูปภาพ */}
-      <div
-        className="relative h-40 bg-gray-100 group cursor-pointer overflow-hidden"
-        onClick={() => product.image && setIsModalOpen(true)}
+      <button
+        type="button"
+        disabled={!product.image}
+        className="relative h-40 w-full bg-gray-100 group cursor-pointer overflow-hidden disabled:cursor-default"
+        onClick={() => setIsModalOpen(true)}
       >
         {product.image ? (
           <>
@@ -25,16 +28,17 @@ function ProductCard({ product, onEdit, onDelete, onToggleAvailability }) {
               className={`w-full h-full object-cover transition-transform group-hover:scale-110 duration-500 ${!product.isAvailable ? 'grayscale opacity-60' : ''}`}
               onError={(e) => {
                 e.target.style.display = 'none';
-                e.target.nextSibling.style.display = 'flex';
+                const fallback = e.target.parentElement.querySelector('.fallback-container');
+                if (fallback) fallback.style.display = 'flex';
               }}
             />
-            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
               <Maximize2 size={24} className="text-white" />
             </div>
           </>
         ) : null}
         <div
-          className="absolute inset-0 flex items-center justify-center bg-gray-100"
+          className="fallback-container absolute inset-0 flex items-center justify-center bg-gray-100"
           style={{ display: product.image ? 'none' : 'flex' }}
         >
           <div className="text-center">
@@ -71,7 +75,7 @@ function ProductCard({ product, onEdit, onDelete, onToggleAvailability }) {
             </div>
           </div>
         )}
-      </div>
+      </button>
 
       {/* ข้อมูล */}
       <div className="p-4">
@@ -113,12 +117,15 @@ function ProductCard({ product, onEdit, onDelete, onToggleAvailability }) {
       </div>
 
       {/* Image Zoom Modal */}
-      <ImageModal
-        isOpen={isModalOpen}
-        image={product.image}
-        title={product.name}
-        onClose={() => setIsModalOpen(false)}
-      />
+      {isModalOpen && createPortal(
+        <ImageModal
+          isOpen={isModalOpen}
+          image={product.image}
+          title={product.name}
+          onClose={() => setIsModalOpen(false)}
+        />,
+        document.body
+      )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, Minus, Image as ImageIcon, ShoppingCart, Maximize2, Ban } from 'lucide-react';
 import ImageModal from './ImageModal';
 
@@ -62,9 +63,11 @@ function MenuItem({ item, onAdd }) {
       )}
 
       <div className="flex items-start gap-3 relative">
-        <div
-          className="w-16 h-16 sm:w-20 sm:h-20 bg-primary-50 rounded-xl p-1 flex-shrink-0 overflow-hidden flex items-center justify-center relative group cursor-pointer"
-          onClick={() => item.image && !isEmoji && item.isAvailable && setIsModalOpen(true)}
+        <button
+          type="button"
+          disabled={!item.image || isEmoji || !item.isAvailable}
+          className="w-16 h-16 sm:w-20 sm:h-20 bg-primary-50 rounded-xl p-1 flex-shrink-0 overflow-hidden flex items-center justify-center relative group cursor-pointer disabled:cursor-default"
+          onClick={() => setIsModalOpen(true)}
         >
           {item.image && !isEmoji ? (
             <>
@@ -74,11 +77,12 @@ function MenuItem({ item, onAdd }) {
                 className={`w-full h-full object-cover rounded-lg transition-all ${!item.isAvailable ? 'grayscale opacity-60' : ''}`}
                 onError={(e) => {
                   e.target.style.display = 'none';
-                  e.target.parentElement.querySelector('.fallback-icon').style.display = 'flex';
+                  const fallback = e.target.parentElement.querySelector('.fallback-icon');
+                  if (fallback) fallback.style.display = 'flex';
                 }}
               />
               {item.isAvailable && (
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                   <Maximize2 size={20} className="text-white" />
                 </div>
               )}
@@ -105,7 +109,7 @@ function MenuItem({ item, onAdd }) {
                </div>
             </div>
           )}
-        </div>
+        </button>
         <div className={`flex-1 min-w-0 ${!item.isAvailable ? 'opacity-40' : ''}`}>
           <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{item.name}</h3>
           <p className="text-xs sm:text-sm text-gray-500 line-clamp-2 mt-0.5">{item.description}</p>
@@ -198,12 +202,15 @@ function MenuItem({ item, onAdd }) {
       </div>
 
       {/* Image Zoom Modal */}
-      <ImageModal
-        isOpen={isModalOpen}
-        image={item.image}
-        title={item.name}
-        onClose={() => setIsModalOpen(false)}
-      />
+      {isModalOpen && createPortal(
+        <ImageModal
+          isOpen={isModalOpen}
+          image={item.image}
+          title={item.name}
+          onClose={() => setIsModalOpen(false)}
+        />,
+        document.body
+      )}
     </div>
   );
 }
