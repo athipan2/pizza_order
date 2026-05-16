@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Plus, Search, ArrowLeft, Package, Settings2, X, Edit2, Trash2 } from 'lucide-react';
 import ProductCard from '../components/admin/ProductCard';
 import ProductForm from '../components/admin/ProductForm';
+import EmptyState from '../components/EmptyState';
 
 function ProductManager({
   products,
@@ -228,13 +229,12 @@ function ProductManager({
 
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">ไม่พบสินค้า</h3>
-            <p className="text-gray-500">
-              {searchTerm ? 'ลองค้นหาด้วยคำอื่น' : 'ยังไม่มีสินค้าในหมวดหมู่นี้'}
-            </p>
-          </div>
+          <EmptyState
+            type={searchTerm ? "search" : "products"}
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 py-16"
+            title={searchTerm ? "ไม่พบสินค้า" : undefined}
+            description={searchTerm ? `ไม่พบสินค้าที่ตรงกับ "${searchTerm}" ลองใช้คำอื่นดูนะ` : undefined}
+          />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredProducts.map(product => (

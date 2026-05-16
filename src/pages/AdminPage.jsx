@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { ArrowLeft, ChevronDown, RefreshCw, MapPin, ExternalLink, Calendar } from 'lucide-react';
 import { OrderStatus } from '../types';
+import EmptyState from '../components/EmptyState';
 
 const statusOptions = [
   { value: OrderStatus.PENDING_PAYMENT, label: '⏳ รอชำระเงิน', color: 'bg-yellow-100 text-yellow-700' },
@@ -77,11 +78,10 @@ function AdminPage({ orders, onUpdateStatus, onBack, updatingOrders = new Set() 
 
       <main className="max-w-4xl mx-auto p-4 animate-scale-in">
         {orders.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
-            <div className="text-6xl mb-4">📭</div>
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">ยังไม่มีออเดอร์</h3>
-            <p className="text-gray-500">รอลูกค้าสั่งซื้อ...</p>
-          </div>
+          <EmptyState
+            type="orders"
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 py-16"
+          />
         ) : (
           <div className="space-y-8">
             {groupedOrders.map(([dateKey, group]) => (
