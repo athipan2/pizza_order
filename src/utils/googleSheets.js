@@ -201,6 +201,27 @@ export const googleSheetsApi = {
     }
   },
 
+  async updateOrderLineUserId(orderId, lineUserId) {
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'updateOrderLineUserId',
+          id: orderId.toString(),
+          lineUserId
+        }),
+      });
+      if (!response.ok) throw new Error('Network response was not ok');
+      const result = await response.json();
+      if (result.status === 'error') throw new Error(result.message);
+      return result;
+    } catch (error) {
+      console.error('Error updating order lineUserId:', error);
+      throw error;
+    }
+  },
+
   async getSettings() {
     try {
       const response = await fetch(`${API_URL}?action=getSettings&_=${Date.now()}`);
