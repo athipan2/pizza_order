@@ -9,7 +9,8 @@ function ShopSettings({ settings, onSave, onBack, isUpdating }) {
     qrCode: '',
     lineChannelAccessToken: '',
     lineOaId: '',
-    liffId: ''
+    liffId: '',
+    showLineNotify: true
   });
   const [previewImage, setPreviewImage] = useState(null);
 
@@ -22,7 +23,8 @@ function ShopSettings({ settings, onSave, onBack, isUpdating }) {
         qrCode: settings.qrCode || '',
         lineChannelAccessToken: settings.lineChannelAccessToken || '',
         lineOaId: settings.lineOaId || '',
-        liffId: settings.liffId || ''
+        liffId: settings.liffId || '',
+        showLineNotify: settings.showLineNotify !== undefined ? settings.showLineNotify : true
       });
       setPreviewImage(settings.qrCode || null);
     }
@@ -130,10 +132,22 @@ function ShopSettings({ settings, onSave, onBack, isUpdating }) {
 
           {/* ข้อมูล LINE Notification */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
-            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-2">
-              <MessageCircle className="text-[#06C755]" size={20} />
-              ตั้งค่า LINE Notification
-            </h2>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <MessageCircle className="text-[#06C755]" size={20} />
+                ตั้งค่า LINE Notification
+              </h2>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={formData.showLineNotify}
+                  onChange={(e) => setFormData({ ...formData, showLineNotify: e.target.checked })}
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#06C755]"></div>
+                <span className="ml-3 text-sm font-medium text-gray-700">เปิดใช้งาน</span>
+              </label>
+            </div>
 
             <div className="space-y-4">
               <div>

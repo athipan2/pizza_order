@@ -51,10 +51,10 @@ function doGet(e) {
     if (action === 'getSettings') {
       const sheet = ss.getSheetByName('Settings');
       if (!sheet) {
-        return createJsonResponse({ bankName: "", accountNumber: "", accountHolder: "", qrCode: "", isShopOpen: true, lineChannelAccessToken: "", lineOaId: "", liffId: "" });
+        return createJsonResponse({ bankName: "", accountNumber: "", accountHolder: "", qrCode: "", isShopOpen: true, lineChannelAccessToken: "", lineOaId: "", liffId: "", showLineNotify: true });
       }
       const data = getSheetDataAsJson(sheet);
-      const settings = data.length > 0 ? data[0] : { bankName: "", accountNumber: "", accountHolder: "", qrCode: "", isShopOpen: true, lineChannelAccessToken: "", lineOaId: "", liffId: "" };
+      const settings = data.length > 0 ? data[0] : { bankName: "", accountNumber: "", accountHolder: "", qrCode: "", isShopOpen: true, lineChannelAccessToken: "", lineOaId: "", liffId: "", showLineNotify: true };
 
       // Mask sensitive data
       const safeSettings = { ...settings };
@@ -282,7 +282,7 @@ function doPost(e) {
       let sheet = ss.getSheetByName('Settings');
       if (!sheet) {
         sheet = ss.insertSheet('Settings');
-        sheet.getRange(1, 1, 1, 8).setValues([['bankName', 'accountNumber', 'accountHolder', 'qrCode', 'isShopOpen', 'lineChannelAccessToken', 'lineOaId', 'liffId']]);
+        sheet.getRange(1, 1, 1, 9).setValues([['bankName', 'accountNumber', 'accountHolder', 'qrCode', 'isShopOpen', 'lineChannelAccessToken', 'lineOaId', 'liffId', 'showLineNotify']]);
       }
 
       let qrCodeUrl = data.qrCode;
@@ -291,7 +291,7 @@ function doPost(e) {
       }
 
       // ป้องกันการทับค่าเดิมที่ Mask ไว้
-      const existingData = sheet.getLastRow() > 1 ? sheet.getRange(2, 1, 1, 8).getValues()[0] : null;
+      const existingData = sheet.getLastRow() > 1 ? sheet.getRange(2, 1, 1, 9).getValues()[0] : null;
       let accessToken = data.lineChannelAccessToken || "";
       if (accessToken.includes("...") && existingData) {
         accessToken = existingData[5]; // ใช้ค่าเดิมในชีต
@@ -305,11 +305,12 @@ function doPost(e) {
         data.isShopOpen !== undefined ? data.isShopOpen : true,
         accessToken,
         data.lineOaId || "",
-        data.liffId || ""
+        data.liffId || "",
+        data.showLineNotify !== undefined ? data.showLineNotify : true
       ];
 
       if (sheet.getLastRow() > 1) {
-        sheet.getRange(2, 1, 1, 8).setValues([settingsData]);
+        sheet.getRange(2, 1, 1, 9).setValues([settingsData]);
       } else {
         sheet.appendRow(settingsData);
       }
@@ -336,8 +337,8 @@ function setupSheets(ss) {
 
   let sSheet = ss.getSheetByName('Settings');
   if (!sSheet) sSheet = ss.insertSheet('Settings');
-  sSheet.getRange(1, 1, 1, 8).setValues([['bankName', 'accountNumber', 'accountHolder', 'qrCode', 'isShopOpen', 'lineChannelAccessToken', 'lineOaId', 'liffId']]);
-  sSheet.getRange(1, 1, 1, 8).setFontWeight("bold").setBackground("#f3f3f3");
+  sSheet.getRange(1, 1, 1, 9).setValues([['bankName', 'accountNumber', 'accountHolder', 'qrCode', 'isShopOpen', 'lineChannelAccessToken', 'lineOaId', 'liffId', 'showLineNotify']]);
+  sSheet.getRange(1, 1, 1, 9).setFontWeight("bold").setBackground("#f3f3f3");
 
   let cSheet = ss.getSheetByName('Categories');
   if (!cSheet) {
@@ -365,7 +366,7 @@ function getSheetDataAsJson(sheet, parseCart = false) {
   } else if (sheetName === 'Orders') {
     headers = ['id', 'name', 'phone', 'address', 'deliveryMethod', 'paymentMethod', 'cartItems', 'total', 'status', 'createdAt', 'slipFile', 'location', 'remark', 'lineUserId'];
   } else if (sheetName === 'Settings') {
-    headers = ['bankName', 'accountNumber', 'accountHolder', 'qrCode', 'isShopOpen', 'lineChannelAccessToken', 'lineOaId', 'liffId'];
+    headers = ['bankName', 'accountNumber', 'accountHolder', 'qrCode', 'isShopOpen', 'lineChannelAccessToken', 'lineOaId', 'liffId', 'showLineNotify'];
   } else if (sheetName === 'Categories') {
     headers = ['id', 'name', 'icon'];
   }

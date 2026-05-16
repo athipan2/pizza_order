@@ -43,7 +43,8 @@ function App() {
     isShopOpen: true,
     lineChannelAccessToken: '',
     lineOaId: '',
-    liffId: ''
+    liffId: '',
+    showLineNotify: true
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -198,7 +199,8 @@ function App() {
           isShopOpen: (sData.isShopOpen === false || sData.isShopOpen === 'FALSE' || sData.isShopOpen === 'false') ? false : true,
           lineChannelAccessToken: sData.lineChannelAccessToken || '',
           lineOaId: sData.lineOaId || '',
-          liffId: sData.liffId || ''
+          liffId: sData.liffId || '',
+          showLineNotify: (sData.showLineNotify === false || sData.showLineNotify === 'FALSE' || sData.showLineNotify === 'false') ? false : true
         });
       }
 

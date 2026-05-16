@@ -405,7 +405,7 @@ function OrderTracker({ orders, settings, onUpdateLineUserId }) {
                     </div>
 
                     {/* ปุ่มรับการแจ้งเตือน LINE */}
-                    {!order.lineUserId && settings?.liffId && (
+                    {!order.lineUserId && settings?.liffId && settings?.showLineNotify !== false && (
                       <div className="mt-4 space-y-2">
                         {settings?.lineOaId && (
                           <a
